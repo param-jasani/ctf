@@ -4,41 +4,60 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HaxNation — CTF Platform</title>
-    <!-- The required tag to fix the Lighthouse audit -->
     <meta name="description" content="HaxNation CTF Platform. Practice your cybersecurity skills, compete in live operations, and climb the leaderboard.">
-    
-    <!-- Bonus: Open Graph tags for beautiful Discord/Twitter link previews -->
     <meta property="og:title" content="HaxNation | CTF Platform">
     <meta property="og:description" content="Practice your cybersecurity skills, compete in live operations, and climb the leaderboard.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://ctf.haxnation.org/">
-    <!-- Optional: Add an absolute URL to a banner image for social previews -->
     <meta property="og:image" content="https://haxnation.org/images/logo.png">
     <meta name="theme-color" content="#5ce1e6">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
     <script src="/js/aws-intercept.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/minisearch@6.1.0/dist/umd/index.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js" defer></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
                         canvas: '#fafafa', ink: '#0b0b0b',
-                        cyan: '#5ce1e6', danger: '#ff2a2a'
+                        cyan: '#5ce1e6', danger: '#ff2a2a',
+                        success: '#00e676', warning: '#ffeb3b'
                     },
                     fontFamily: {
                         sans: ['"Inter"', 'sans-serif'],
-                        mono: ['"Fira Code"', 'monospace'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
                     }
                 }
             }
         }
-    </script> 
-    <script src="https://cdn.jsdelivr.net/npm/minisearch@6.1.0/dist/umd/index.min.js" defer></script>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js" defer></script>
+    </script>
+    <style type="text/tailwindcss">
+        @layer components {
+            .btn-primary {
+                @apply font-mono uppercase tracking-widest font-bold bg-cyan text-ink border-2 border-ink px-6 py-3 shadow-[4px_4px_0_0_#0b0b0b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#0b0b0b] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all duration-75 focus:outline-none focus:ring-2 focus:ring-cyan focus:ring-offset-2;
+            }
+            .btn-danger {
+                @apply font-mono uppercase tracking-widest font-bold bg-danger text-white border-2 border-ink px-6 py-3 shadow-[4px_4px_0_0_#0b0b0b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#0b0b0b] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all duration-75 focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2;
+            }
+            .btn-secondary {
+                @apply font-mono text-xs font-bold uppercase tracking-widest bg-white text-ink border-2 border-ink px-4 py-2 hover:bg-ink hover:text-white transition-colors duration-0 shadow-[2px_2px_0_0_#0b0b0b] focus:outline-none focus:ring-2 focus:ring-ink focus:ring-offset-2;
+            }
+            .card {
+                @apply bg-white border-2 border-ink p-6 shadow-[6px_6px_0_0_#0b0b0b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0_0_#0b0b0b] transition-all duration-75;
+            }
+            .input {
+                @apply border-2 border-ink bg-white p-3 font-mono text-sm rounded-none focus:outline-none focus:ring-0 focus:border-cyan focus:bg-ink focus:text-cyan transition-colors duration-75 w-full shadow-[inset_2px_2px_0_0_#e5e5e5];
+            }
+            .label {
+                @apply font-mono text-[10px] font-bold uppercase mb-1 block text-ink;
+            }
+        }
+    </style>
 </head>
 <body class="bg-canvas text-ink font-sans min-h-screen antialiased selection:bg-cyan selection:text-ink">
 
