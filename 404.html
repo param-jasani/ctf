@@ -17,7 +17,11 @@
     <script src="/js/aws-intercept.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/minisearch@6.1.0/dist/umd/index.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js" defer></script>
-
+    <link rel="icon" type="image/png" href="/favicons/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicons/favicon.svg" />
+    <link rel="shortcut icon" href="/favicons/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicons/apple-touch-icon.png" />
+    <link rel="manifest" href="/favicons/site.webmanifest" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -56,8 +60,20 @@
             .label {
                 @apply font-mono text-[10px] font-bold uppercase mb-1 block text-ink;
             }
-        }
-    </style>
+            .skeleton {
+                @apply bg-gray-200 relative overflow-hidden;
+            }
+            .skeleton::after {
+                content: '';
+                @apply absolute inset-0;
+                background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.6) 50%, transparent 100%);
+                animation: shimmer 1.4s infinite;
+            }
+            @keyframes shimmer {
+                0% { transform: translateX(-100%); }
+                100% { transform: translateX(100%); }
+            }
+        
 </head>
 <body class="bg-canvas text-ink font-sans min-h-screen antialiased selection:bg-cyan selection:text-ink">
 
@@ -144,8 +160,8 @@
                     </div>
                 </div>
 
-                <div id="loading-practice" class="col-span-full py-16 text-center border-2 border-ink bg-white shadow-[4px_4px_0_0_#0b0b0b]">
-                    <p class="font-mono text-sm font-bold uppercase tracking-widest text-ink animate-pulse">> Booting up mainframe...</p>
+                <div id="loading-practice" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Skeleton cards injected by JS -->
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="practice-challenges-grid"></div>
             </div>
