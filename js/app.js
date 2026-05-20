@@ -52,7 +52,7 @@ function injectSkeletonCards(count = 9) {
     loadingEl.classList.remove('hidden');
 }
 
-
+document.addEventListener('DOMContentLoaded', async () => {
     window.login = login;
     window.toggleHint = toggleHint;
     window.showEventsList = showEventsList;
@@ -677,8 +677,6 @@ function renderPracticeCard(chal, solvedIds) {
             <p class="font-mono text-[10px] font-bold uppercase truncate">> ${safeAuthors}</p>
         </div>
     </a>`;
-}
-    }).join('');
 }
 
 function renderCompeteCard(chal, solvedList, mode) {
