@@ -161,7 +161,10 @@ async function applyFilters() {
     await renderPracticeGrid(results);
 }
 
+let searchTimeout;
 function handleSearchInput(e) {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
     const query = e.target.value;
     applyFilters(); 
 
@@ -184,6 +187,7 @@ function handleSearchInput(e) {
     } else {
         suggestionsBox.classList.add('hidden');
     }
+    }, 300);
 }
 
 function selectSuggestion(id) {
@@ -213,7 +217,11 @@ function setupListeners() {
     // ==========================================
     // STANDARD CTF FLAG SUBMISSION
     // ==========================================
-    document.getElementById('submitFlagBtn')?.addEventListener('click', async () => {
+    document.getElementById('submitFlagBtn')?.addEventListener('click', async (e) => {
+        const btn = e.target.closest('button');
+        const origTxt = btn.innerText;
+        btn.innerText = 'EXECUTING...';
+        btn.disabled = true;
         if (!window.currentChallengeData) return;
         
         const userInput = document.getElementById('flagInput').value.trim();
@@ -267,6 +275,8 @@ function setupListeners() {
                 statusEl.className = 'mt-4 font-mono text-sm font-bold h-6 uppercase tracking-widest text-white bg-danger inline-block px-2 border-2 border-ink';
                 statusEl.innerText = "> ERR: HASH_MISMATCH";
             }
+            btn.innerText = origTxt;
+            btn.disabled = false;
         } else {
             try {
                 statusEl.className = 'mt-4 font-mono text-sm font-bold h-6 uppercase tracking-widest text-ink bg-canvas border-2 border-ink inline-block px-2 animate-pulse';
@@ -292,10 +302,14 @@ function setupListeners() {
                     statusEl.className = 'mt-4 font-mono text-sm font-bold h-6 uppercase tracking-widest text-white bg-danger inline-block px-2 border-2 border-ink';
                     statusEl.innerText = `> ERR: ${data.error || data.message || 'VERIFICATION_FAILED'}`;
                 }
+                btn.innerText = origTxt;
+                btn.disabled = false;
             } catch (err) {
                 statusEl.className = 'mt-4 font-mono text-sm font-bold h-6 uppercase tracking-widest text-white bg-danger inline-block px-2 border-2 border-ink';
                 statusEl.innerText = "> ERR: NETWORK_ANOMALY";
             }
+            btn.innerText = origTxt;
+            btn.disabled = false;
         }
     });
 
@@ -454,7 +468,7 @@ async function loadLiveEvents() {
         eventsList.innerHTML = `
             <div class="bg-white border-4 border-ink shadow-[8px_8px_0_0_#0b0b0b] p-16 text-center">
                 <p class="font-mono text-xl font-bold uppercase tracking-widest text-white bg-danger inline-block px-4 py-2 border-2 border-ink mb-6 shadow-[4px_4px_0_0_#0b0b0b]">CLEARANCE REQUIRED</p><br/>
-                <button onclick="window.login()" class="font-mono uppercase tracking-widest font-bold bg-ink text-white border-2 border-ink px-8 py-3 shadow-[4px_4px_0_0_#5ce1e6] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#5ce1e6] transition-all duration-75">Execute Auth</button>
+                <button onclick="window.login()" class="font-mono uppercase tracking-widest font-bold bg-ink text-white border-2 border-ink px-8 py-3 shadow-[4px_4px_0_0_#0b0b0b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#0b0b0b] transition-all duration-75">Execute Auth</button>
             </div>`;
         return;
     }
@@ -491,7 +505,7 @@ async function loadLiveEvents() {
                 <div class="bg-white border-2 border-ink p-6 rounded-none shadow-[6px_6px_0_0_#0b0b0b] transition-all duration-75 flex flex-col ${cardStyle}" ${onClickAttr}>
                     <div class="flex justify-between items-start mb-4 border-b-2 border-ink ${ev.isPlayable ? 'group-hover:border-white' : ''} pb-2 gap-2">
                         <h3 class="font-black text-2xl uppercase tracking-tighter">${safeEvName}</h3>
-                        <span class="border-2 border-ink px-2 py-1 font-mono text-[10px] whitespace-nowrap font-bold uppercase shadow-[2px_2px_0_0_#0b0b0b] ${ev.isPlayable ? 'group-hover:shadow-[2px_2px_0_0_#5ce1e6] group-hover:border-white' : ''} ${badgeColor}">${safeBadgeText}</span>
+                        <span class="border-2 border-ink px-2 py-1 font-mono text-[10px] whitespace-nowrap font-bold uppercase shadow-[2px_2px_0_0_#0b0b0b] ${ev.isPlayable ? 'group-hover:shadow-[2px_2px_0_0_#0b0b0b] group-hover:border-white' : ''} ${badgeColor}">${safeBadgeText}</span>
                     </div>
                     <p class="font-sans text-sm flex-1">${safeEvDesc}</p>
                     ${regButton}
@@ -509,7 +523,7 @@ async function loadIndependentChallenges() {
     const grid = document.getElementById('compete-independent-grid');
     
     if (!state.currentUser) {
-        grid.innerHTML = `<div class="col-span-full bg-white border-4 border-ink shadow-[8px_8px_0_0_#0b0b0b] p-16 text-center"><p class="font-mono text-xl font-bold uppercase tracking-widest text-white bg-danger inline-block px-4 py-2 border-2 border-ink mb-6 shadow-[4px_4px_0_0_#0b0b0b]">CLEARANCE REQUIRED</p><br/><button onclick="window.login()" class="font-mono uppercase tracking-widest font-bold bg-ink text-white border-2 border-ink px-8 py-3 shadow-[4px_4px_0_0_#5ce1e6] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#5ce1e6] transition-all duration-75">Execute Auth</button></div>`;
+        grid.innerHTML = `<div class="col-span-full bg-white border-4 border-ink shadow-[8px_8px_0_0_#0b0b0b] p-16 text-center"><p class="font-mono text-xl font-bold uppercase tracking-widest text-white bg-danger inline-block px-4 py-2 border-2 border-ink mb-6 shadow-[4px_4px_0_0_#0b0b0b]">CLEARANCE REQUIRED</p><br/><button onclick="window.login()" class="font-mono uppercase tracking-widest font-bold bg-ink text-white border-2 border-ink px-8 py-3 shadow-[4px_4px_0_0_#0b0b0b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#0b0b0b] transition-all duration-75">Execute Auth</button></div>`;
         return;
     }
 
@@ -757,7 +771,7 @@ async function openChallenge(id, mode) {
         const validateWeb3Btn = document.getElementById('validateWeb3Btn');
 
         let rawDescription = chal.description 
-            ? chal.description.replace(/\[REDACTED\]/g, '<span class="bg-black text-black hover:text-[#5ce1e6] selection:bg-[#ff2a2a] cursor-crosshair transition-none select-none">CLASSIFIED</span>')
+            ? chal.description.replace(/\[REDACTED\]/g, '<span class="bg-ink text-ink hover:text-cyan selection:bg-danger cursor-crosshair transition-none select-none">CLASSIFIED</span>')
             : "> NO_DESCRIPTION_PROVIDED";
 
         if (isWeb3) {
