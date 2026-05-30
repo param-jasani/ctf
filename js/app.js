@@ -175,7 +175,7 @@ async function syncPracticeSolvesFromServer() {
         }));
         return solves;
     } catch (err) {
-        console.error("Error syncing practice solves:", err);
+        window.showToast('error', 'CACHE SYNC FAILED. NETWORK ISSUE. SOLVES MAY BE OUTDATED.');
         const oldCacheRaw = localStorage.getItem('practice_solves_data');
         return oldCacheRaw ? JSON.parse(oldCacheRaw).solves : [];
     }
@@ -473,11 +473,11 @@ function setupListeners() {
             document.getElementById('connectWalletBtn').classList.add('hidden');
             document.getElementById('validateWeb3Btn').classList.remove('hidden');
             
-            statusEl.className = 'mt-4 font-mono text-sm font-bold text-ink bg-cyan inline-block px-2 border-2 border-ink';
-            statusEl.innerText = `> CONNECTED: ${userWallet.substring(0,6)}...${userWallet.substring(38)}`;
+            statusEl.className = 'mt-4 font-mono text-sm font-bold text-ink bg-success inline-block px-2 border-2 border-ink';
+            statusEl.innerText = `> ✓ CONNECTED: ${userWallet.substring(0,6)}...${userWallet.substring(38)}`;
         } catch (err) {
             statusEl.className = 'mt-4 font-mono text-sm font-bold text-white bg-danger inline-block px-2 border-2 border-ink';
-            statusEl.innerText = "> ERR: WALLET CONNECTION FAILED OR WRONG NETWORK";
+            statusEl.innerText = "> ERR: METAMASK REJECTED. WALLET OR NETWORK FAULT. RETRY CONNECTION.";
         }
     });
 
@@ -520,15 +520,15 @@ function setupListeners() {
             const data = await res.json();
             
             if (data.success) {
-                statusEl.className = 'mt-4 font-mono text-sm font-bold text-ink bg-cyan inline-block px-2 border-2 border-ink';
-                statusEl.innerText = `> SUCCESS: +${data.points} PTS`;
+                statusEl.className = 'mt-4 font-mono text-sm font-bold text-ink bg-success inline-block px-2 border-2 border-ink';
+                statusEl.innerText = `> ✓ SUCCESS: +${data.points} PTS`;
             } else {
                 statusEl.className = 'mt-4 font-mono text-sm font-bold text-white bg-danger inline-block px-2 border-2 border-ink';
-                statusEl.innerText = `> ERR: ${data.error || data.message || 'VERIFICATION_FAILED'}`;
+                statusEl.innerText = `> ERR: SYSTEM FAULT. VERIFICATION FAILED. RETRY LATER.`;
             }
         } catch (err) {
             statusEl.className = 'mt-4 font-mono text-sm font-bold text-white bg-danger inline-block px-2 border-2 border-ink';
-            statusEl.innerText = "> ERR: TRANSACTION_OR_NETWORK_ERROR";
+            statusEl.innerText = "> ERR: NETWORK FAULT. CHECK CONNECTION. RETRY LATER.";
         }
     });
 }
@@ -714,7 +714,11 @@ async function openEvent(eventId, eventName) {
         window.currentChallengesList = data.challenges; 
         grid.innerHTML = data.challenges.map(chal => renderCompeteCard(chal, data.solved, 'compete-event')).join('');
     } catch (err) {
-        grid.innerHTML = `<div class="col-span-full py-16 text-center border-2 border-ink bg-white shadow-[4px_4px_0_0_#0b0b0b]"><p class="font-mono text-sm font-bold uppercase tracking-widest text-white bg-danger inline-block px-4 py-2 border-2 border-ink">> SYSTEM_ERR</p></div>`;
+        grid.innerHTML = `<div class="col-span-full py-16 text-center border-2 border-ink bg-white shadow-[4px_4px_0_0_#0b0b0b]">
+            <p class="font-mono text-sm font-bold uppercase tracking-widest text-white bg-danger inline-block px-4 py-2 border-2 border-ink mb-4">> ERROR: OPERATION UNAVAILABLE</p>
+            <p class="font-mono text-sm text-ink mb-4">A network error prevented the operation data from loading.</p>
+            <button onclick="window.openEvent('${eventId}', '${eventName}')" class="font-mono text-xs font-bold uppercase bg-cyan text-ink border-2 border-ink px-4 py-2 hover:translate-x-[2px] hover:translate-y-[2px] shadow-[2px_2px_0_0_#0b0b0b] transition-all">Retry Operation</button>
+        </div>`;
     }
 }
 
@@ -1025,7 +1029,7 @@ async function showLeaderboard() {
             tbody.innerHTML = `<tr><td colspan="3" class="text-center p-8 text-ink font-mono font-bold">> NO_FLAGS_CAPTURED</td></tr>`;
         }
     } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="3" class="text-center p-8 text-white bg-danger font-mono font-bold">> ERR_LOADING_LEADERBOARD</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="3" class="text-center p-8 text-white bg-danger font-mono font-bold">> ERROR: LEADERBOARD UNAVAILABLE. NETWORK FAULT. RETRY LATER.</td></tr>`;
     }
 }
 
