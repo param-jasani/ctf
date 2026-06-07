@@ -51,7 +51,7 @@ function JsonViewer({ data, name, initialExpanded = false }: { data: any; name?:
     )
   }
 
-  const keys = Object.keys(data)
+  const keys = Object.keys(data).filter(k => !k.toLowerCase().includes('verdict'))
   const isEmpty = keys.length === 0
 
   return (
@@ -88,6 +88,7 @@ function AlertFieldsPanel({ alert }: { alert: Alert & { _index: number } }) {
     if (SKIP_FIELDS.has(key)) return false
     if (val === null || val === undefined || val === '') return false
     if (key === 'mitre_technique' || key === 'mitre_tactic') return false
+    if (key.toLowerCase().includes('verdict')) return false
     return true
   })
 
@@ -153,16 +154,16 @@ function AlertFieldsPanel({ alert }: { alert: Alert & { _index: number } }) {
 
 function TriagePanel({
   scenarioId,
-  alertIndex,
+  alert,
   totalAlerts,
   existing,
   onSubmit,
 }: {
   scenarioId: string
-  alertIndex: number
+  alert: Alert & { _index: number }
   totalAlerts: number
-  existing: TriageResult | undefined
-  onSubmit: (result: TriageResult) => void
+  existing: (TriageResult & { isCorrect?: boolean }) | undefined
+  onSubmit: (result: TriageResult & { isCorrect: boolean }) => void
 }) {
   const navigate = useNavigate()
   const [verdict, setVerdict] = useState<TriageVerdict | null>(null)
@@ -173,14 +174,29 @@ function TriagePanel({
     if (!verdict) return
     setSubmitting(true)
     setSubmitError('')
-    try {
-      const res = await submitTriage(scenarioId, alertIndex, { verdict })
-      onSubmit(res.triage)
-    } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Submission failed')
-    } finally {
-      setSubmitting(false)
+    
+    // Find the ground truth verdict from the alert fields
+    let actualVerdict = ''
+    for (const val of Object.values(alert)) {
+      if (typeof val === 'string') {
+        try { const p = JSON.parse(val); if (p?.verdict) actualVerdict = p.verdict; } catch(e){}
+      } else if (val && typeof val === 'object') {
+        if ((val as any).verdict) actualVerdict = (val as any).verdict;
+      }
     }
+
+    setTimeout(() => {
+      setSubmitting(false)
+      const isCorrect = actualVerdict ? verdict === actualVerdict : true
+      onSubmit({ verdict, submittedAt: new Date().toISOString(), isCorrect })
+      
+      const isLast = alert._index >= totalAlerts - 1
+      if (!isLast) {
+        setTimeout(() => {
+          navigate(`/scenarios/${scenarioId}/alerts/${alert._index + 1}`)
+        }, 1500)
+      }
+    }, 400)
   }
 
   if (existing) {
@@ -197,10 +213,11 @@ function TriagePanel({
           {[
             ['verdict',   existing.verdict.toUpperCase()],
             ['submitted', existing.submittedAt.split('T')[0]],
+            ['accuracy', existing.isCorrect === undefined ? 'UNKNOWN' : existing.isCorrect ? 'CORRECT' : 'INCORRECT']
           ].map(([k, v]) => (
             <div key={k} className="grid grid-cols-3 bg-surface-container-lowest p-3">
               <span className="font-code-sm text-code-sm text-on-surface-variant">{k}</span>
-              <span className="col-span-2 font-code-sm text-code-sm text-primary-container">{v}</span>
+              <span className={`col-span-2 font-code-sm text-code-sm ${k === 'accuracy' ? (existing.isCorrect ? 'text-[#00ff88]' : 'text-error') : 'text-primary-container'}`}>{v}</span>
             </div>
           ))}
         </div>
@@ -272,9 +289,9 @@ export default function AlertTriage() {
   const [totalAlerts, setTotalAlerts] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [triageMap, setTriageMap] = useState<Map<string, TriageResult>>(new Map())
+  const [triageMap, setTriageMap] = useState<Map<string, TriageResult & { isCorrect?: boolean }>>(new Map())
 
-  const recordTriage = (k: string, v: TriageResult) => {
+  const recordTriage = (k: string, v: TriageResult & { isCorrect?: boolean }) => {
     setTriageMap(prev => new Map(prev).set(k, v))
   }
 
@@ -411,7 +428,7 @@ export default function AlertTriage() {
           <div className="sticky top-24 space-y-6">
             <TriagePanel
               scenarioId={id!}
-              alertIndex={alertIndex}
+              alert={alert}
               totalAlerts={totalAlerts}
               existing={existing}
               onSubmit={result => recordTriage(triageKey, result)}
