@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getScenarioSummary, listAlerts } from '../api'
 import type { Alert, AlertSeverity, ScenarioSummary } from '../types'
+import { initScenarioStream, subscribeToStream } from '../lib/alertStream'
 import SeverityBadge from '../components/SeverityBadge'
 import TerminalLoader from '../components/TerminalLoader'
 import ErrorMessage from '../components/ErrorMessage'
@@ -220,6 +221,8 @@ export default function ScenarioDetail() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [filters, setFilters] = useState({ severity: '', source: '' })
+  const [visibleCount, setVisibleCount] = useState(0)
+  const [toastMsg, setToastMsg] = useState('')
 
   // Unique source values from the UNFILTERED alert set
   const allSources = [...new Set(allAlerts.map(a => a.source))].sort()
@@ -235,12 +238,24 @@ export default function ScenarioDetail() {
         setSummary(sum)
         setAlerts(res.alerts)
         setAllAlerts(res.alerts)
+        initScenarioStream(id, res.alerts.length)
       })
       .catch(err => {
         setError(err instanceof Error ? err.message : 'Failed to load scenario')
       })
       .finally(() => setLoading(false))
   }, [id, navigate])
+
+  useEffect(() => {
+    const unsub = subscribeToStream((count, isNew) => {
+      setVisibleCount(count)
+      if (isNew) {
+        setToastMsg('NEW ALERT DETECTED')
+        setTimeout(() => setToastMsg(''), 3000)
+      }
+    })
+    return unsub
+  }, [])
 
   // Re-fetch when filters change
   useEffect(() => {
@@ -262,14 +277,16 @@ export default function ScenarioDetail() {
     setFilters(prev => ({ ...prev, [key]: val }))
   }
 
+  const visibleAlerts = alerts.filter(a => a._index < visibleCount)
+
   const computedSummary: ScenarioSummary | null = summary ? {
     ...summary,
-    totalAlerts: alerts.length,
-    bySeverity: alerts.reduce((acc, a) => {
+    totalAlerts: visibleCount,
+    bySeverity: visibleAlerts.reduce((acc, a) => {
       acc[a.alert_severity] = (acc[a.alert_severity] || 0) + 1
       return acc
     }, {} as Record<string, number>),
-    bySource: alerts.reduce((acc, a) => {
+    bySource: visibleAlerts.reduce((acc, a) => {
       acc[a.source] = (acc[a.source] || 0) + 1
       return acc
     }, {} as Record<string, number>)
@@ -295,10 +312,16 @@ export default function ScenarioDetail() {
   }
 
   return (
-    <div className="h-[calc(100vh-48px)] grid grid-cols-12 overflow-hidden">
+    <div className="h-[calc(100vh-48px)] grid grid-cols-12 overflow-hidden relative">
+      {toastMsg && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-primary-container text-on-primary-container px-6 py-2 font-label-caps text-label-caps z-50 animate-bounce flex items-center gap-2">
+          <span className="material-symbols-outlined text-[16px]">notifications_active</span>
+          {toastMsg}
+        </div>
+      )}
       {computedSummary && <SummaryPanel summary={computedSummary} />}
       <AlertTable
-        alerts={alerts}
+        alerts={visibleAlerts}
         scenarioId={id!}
         filters={filters}
         onFilterChange={handleFilterChange}

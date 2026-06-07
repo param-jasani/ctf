@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { getAlert, getScenarioSummary } from '../api'
+import { getAlert } from '../api'
 import type { Alert, AlertSeverity, TriageResult, TriageVerdict } from '../types'
+import { subscribeToStream } from '../lib/alertStream'
 import SeverityBadge from '../components/SeverityBadge'
 import TerminalLoader from '../components/TerminalLoader'
 import ErrorMessage from '../components/ErrorMessage'
@@ -297,26 +298,34 @@ export default function AlertTriage() {
   const triageKey = `${id}:${alertIndex}`
 
   const [alert, setAlert] = useState<(Alert & { _index: number }) | null>(null)
-  const [totalAlerts, setTotalAlerts] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [triageMap, setTriageMap] = useState<Map<string, TriageResult & { isCorrect?: boolean }>>(new Map())
+  const [visibleCount, setVisibleCount] = useState(0)
+  const [toastMsg, setToastMsg] = useState('')
 
   const recordTriage = (k: string, v: TriageResult & { isCorrect?: boolean }) => {
     setTriageMap(prev => new Map(prev).set(k, v))
   }
 
   useEffect(() => {
+    const unsub = subscribeToStream((count, isNew) => {
+      setVisibleCount(count)
+      if (isNew) {
+        setToastMsg('NEW ALERT DETECTED')
+        setTimeout(() => setToastMsg(''), 3000)
+      }
+    })
+    return unsub
+  }, [])
+
+  useEffect(() => {
     if (!id || isNaN(alertIndex)) return
     setLoading(true)
     setAlert(null)
-    Promise.all([
-      getAlert(id, alertIndex),
-      getScenarioSummary(id),
-    ])
-      .then(([a, s]) => {
+    getAlert(id, alertIndex)
+      .then(a => {
         setAlert(a)
-        setTotalAlerts(s.totalAlerts)
       })
       .catch(err => {
         setError(err instanceof Error ? err.message : 'Failed to load alert')
@@ -346,7 +355,13 @@ export default function AlertTriage() {
   const existing = triageMap.get(triageKey)
 
   return (
-    <div className="min-h-[calc(100vh-48px)] bg-background pb-12">
+    <div className="min-h-[calc(100vh-48px)] bg-background pb-12 relative">
+      {toastMsg && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 bg-primary-container text-on-primary-container px-6 py-2 font-label-caps text-label-caps z-50 animate-bounce flex items-center gap-2 shadow-lg">
+          <span className="material-symbols-outlined text-[16px]">notifications_active</span>
+          {toastMsg}
+        </div>
+      )}
       {/* Header controls */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center px-margin pt-6 pb-4 gap-4 border-b border-outline-variant">
         <div className="flex items-center gap-4">
@@ -359,7 +374,7 @@ export default function AlertTriage() {
           </button>
           <div className="h-4 w-px bg-outline-variant" />
           <span className="font-label-caps text-label-caps text-primary tracking-widest">
-            ALERT {alertIndex + 1} / {totalAlerts}
+            ALERT {alertIndex + 1} / {visibleCount}
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -372,7 +387,7 @@ export default function AlertTriage() {
             PREV
           </button>
           <button
-            disabled={alertIndex >= totalAlerts - 1}
+            disabled={alertIndex >= visibleCount - 1}
             onClick={() => navigate(`/scenarios/${id}/alerts/${alertIndex + 1}`)}
             className="px-4 py-2 bg-surface-container-high border border-outline-variant hover:border-primary text-on-surface font-label-caps text-label-caps flex items-center gap-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           >
@@ -440,7 +455,7 @@ export default function AlertTriage() {
             <TriagePanel
               scenarioId={id!}
               alert={alert}
-              totalAlerts={totalAlerts}
+              totalAlerts={visibleCount}
               existing={existing}
               onSubmit={result => recordTriage(triageKey, result)}
             />
