@@ -22,12 +22,14 @@ const AuthContext = createContext<AuthContextType>({
   logout: () => {},
 })
 
+const API_BASE_URL = 'https://api.haxnation.org/ctf/api'
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('https://api.haxnation.org/auth/me', { credentials: 'include' })
+    fetch(`${API_BASE_URL}/auth/me`, { credentials: 'include' })
       .then((res) => {
         if (res.ok) {
           return res.json()
@@ -50,11 +52,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const login = () => {
-    window.location.href = `https://api.haxnation.org/auth/login?returnTo=${encodeURIComponent(window.location.href)}`
+    // Match the main CTF site: pass pathname only, not full href
+    const currentPath = window.location.pathname + window.location.search + window.location.hash
+    window.location.href = `${API_BASE_URL}/auth/login?returnTo=${encodeURIComponent(currentPath)}`
   }
 
   const logout = () => {
-    fetch('https://api.haxnation.org/auth/logout', { method: 'POST', credentials: 'include' })
+    fetch(`${API_BASE_URL}/auth/logout`, { method: 'POST', credentials: 'include' })
       .finally(() => {
         window.location.reload()
       })
