@@ -102,10 +102,9 @@ function AlertTable({
 }: {
   alerts: (Alert & { _index: number })[]
   scenarioId: string
-  filters: { severity: string; source: string; mitre_tactic: string }
+  filters: { severity: string; source: string }
   onFilterChange: (key: string, val: string) => void
   allSources: string[]
-  allTactics: string[]
 }) {
   const navigate = useNavigate()
 
@@ -218,11 +217,10 @@ export default function ScenarioDetail() {
   const [allAlerts, setAllAlerts] = useState<(Alert & { _index: number })[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [filters, setFilters] = useState({ severity: '', source: '', mitre_tactic: '' })
+  const [filters, setFilters] = useState({ severity: '', source: '' })
 
-  // Unique source and tactic values from the UNFILTERED alert set
+  // Unique source values from the UNFILTERED alert set
   const allSources = [...new Set(allAlerts.map(a => a.source))].sort()
-  const allTactics = [...new Set(allAlerts.map(a => a.mitre_tactic).filter(Boolean) as string[])].sort()
 
   useEffect(() => {
     if (!id) return
@@ -247,7 +245,7 @@ export default function ScenarioDetail() {
     if (!id || loading) return
     const active = Object.fromEntries(
       Object.entries(filters).filter(([, v]) => v !== '')
-    ) as { severity?: string; source?: string; mitre_tactic?: string }
+    ) as { severity?: string; source?: string }
 
     if (Object.keys(active).length === 0) {
       setAlerts(allAlerts)
@@ -271,12 +269,6 @@ export default function ScenarioDetail() {
     }, {} as Record<string, number>),
     bySource: alerts.reduce((acc, a) => {
       acc[a.source] = (acc[a.source] || 0) + 1
-      return acc
-    }, {} as Record<string, number>),
-    byMitreTactic: alerts.reduce((acc, a) => {
-      if (a.mitre_tactic) {
-        acc[a.mitre_tactic] = (acc[a.mitre_tactic] || 0) + 1
-      }
       return acc
     }, {} as Record<string, number>)
   } : null;
@@ -309,7 +301,6 @@ export default function ScenarioDetail() {
         filters={filters}
         onFilterChange={handleFilterChange}
         allSources={allSources}
-        allTactics={allTactics}
       />
     </div>
   )
