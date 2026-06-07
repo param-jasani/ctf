@@ -2,6 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <script>
+      // Early intercept: if this page was served for a /soc-sim route,
+      // stop everything and redirect to the SOC Simulator app.
+      (function() {
+        var p = window.location.pathname;
+        if (p.indexOf('/soc-sim') === 0 && p.indexOf('/soc-sim/index.html') === -1) {
+          window.location.replace('/soc-sim/index.html');
+          // Halt further parsing of this document
+          document.write('');
+          document.close();
+        }
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HaxNation — CTF Platform</title>
     <meta name="description" content="HaxNation CTF Platform. Practice your cybersecurity skills, compete in live operations, and climb the leaderboard.">
