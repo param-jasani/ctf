@@ -129,7 +129,7 @@ function AlertTable({
   const navigate = useNavigate()
 
   return (
-    <section className="col-span-12 md:col-span-8 flex flex-col bg-background">
+    <section className="col-span-12 md:col-span-8 flex flex-col bg-background h-full overflow-hidden">
       {/* Filter bar */}
       <div className="h-14 border-b border-outline-variant flex items-center px-6 gap-4 bg-surface-container-low shrink-0">
         <h2 className="font-label-caps text-label-caps text-on-surface-variant flex items-center gap-2 shrink-0">
@@ -291,6 +291,25 @@ export default function ScenarioDetail() {
     setFilters(prev => ({ ...prev, [key]: val }))
   }
 
+  const computedSummary: ScenarioSummary | null = summary ? {
+    ...summary,
+    totalAlerts: alerts.length,
+    bySeverity: alerts.reduce((acc, a) => {
+      acc[a.alert_severity] = (acc[a.alert_severity] || 0) + 1
+      return acc
+    }, {} as Record<string, number>),
+    bySource: alerts.reduce((acc, a) => {
+      acc[a.source] = (acc[a.source] || 0) + 1
+      return acc
+    }, {} as Record<string, number>),
+    byMitreTactic: alerts.reduce((acc, a) => {
+      if (a.mitre_tactic) {
+        acc[a.mitre_tactic] = (acc[a.mitre_tactic] || 0) + 1
+      }
+      return acc
+    }, {} as Record<string, number>)
+  } : null;
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-48px)]">
@@ -312,7 +331,7 @@ export default function ScenarioDetail() {
 
   return (
     <div className="h-[calc(100vh-48px)] grid grid-cols-12 overflow-hidden">
-      {summary && <SummaryPanel summary={summary} />}
+      {computedSummary && <SummaryPanel summary={computedSummary} />}
       <AlertTable
         alerts={alerts}
         scenarioId={id!}

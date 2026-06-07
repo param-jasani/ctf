@@ -3,8 +3,6 @@ export type AlertSeverity = 'informational' | 'low' | 'medium' | 'high' | 'criti
 export type TriageVerdict =
   | 'true_positive'
   | 'false_positive'
-  | 'escalate'
-  | 'needs_investigation'
 
 export interface Alert {
   _time: string
