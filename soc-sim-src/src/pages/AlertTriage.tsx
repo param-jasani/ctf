@@ -218,7 +218,9 @@ function TriagePanel({
         </h2>
         <div className="space-y-[1px] bg-outline-variant">
           {[
-            ['verdict',   existing.verdict.toUpperCase()],
+            ['verdict',   alert.alert_severity === 'informational'
+                            ? (existing.verdict === 'true_positive' ? 'MALICIOUS' : 'NON-MALICIOUS')
+                            : existing.verdict.toUpperCase()],
             ['submitted', existing.submittedAt.split('T')[0]],
             ['accuracy', existing.isCorrect === undefined ? 'UNKNOWN' : existing.isCorrect ? 'CORRECT' : 'INCORRECT']
           ].map(([k, v]) => (
@@ -260,7 +262,9 @@ function TriagePanel({
                     : `border-outline-variant ${opt.hoverBorder} ${opt.hoverBg} text-on-surface`,
                 ].join(' ')}
               >
-                {opt.label}
+                {alert.alert_severity === 'informational'
+                  ? (opt.value === 'true_positive' ? 'MALICIOUS' : 'NON-MALICIOUS')
+                  : opt.label}
               </button>
             )
           })}

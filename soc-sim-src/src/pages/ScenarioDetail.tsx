@@ -35,6 +35,9 @@ function SummaryPanel({ summary }: { summary: ScenarioSummary }) {
               const pct = Math.round((count / maxSev) * 100)
               return (
                 <div key={sev} className="flex-1 flex flex-col items-center justify-end gap-1 h-full">
+                  <span className="text-[10px] font-code-sm text-on-surface-variant">
+                    {count}
+                  </span>
                   <div
                     className={`w-full opacity-80 border-t-2 ${SEV_BAR_COLORS[sev].replace('bg-', 'border-t-').replace('-500', '-400').replace('-400', '-400')}`}
                     style={{ height: `${Math.max(pct, 4)}%`, backgroundColor: undefined }}
