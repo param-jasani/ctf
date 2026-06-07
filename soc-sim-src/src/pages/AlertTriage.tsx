@@ -35,22 +35,6 @@ const VERDICTS: VerdictOption[] = [
     selectedBorder: 'border-on-surface-variant',
     selectedBg:     'bg-surface-variant',
   },
-  {
-    value: 'escalate',
-    label: 'ESCALATE',
-    hoverBorder:    'hover:border-error',
-    hoverBg:        'hover:bg-error/5',
-    selectedBorder: 'border-error',
-    selectedBg:     'bg-error/10',
-  },
-  {
-    value: 'needs_investigation',
-    label: 'INVESTIGATE',
-    hoverBorder:    'hover:border-tertiary-container',
-    hoverBg:        'hover:bg-tertiary-container/5',
-    selectedBorder: 'border-tertiary-container',
-    selectedBg:     'bg-tertiary-container/10',
-  },
 ]
 
 function AlertFieldsPanel({ alert }: { alert: Alert & { _index: number } }) {
@@ -123,45 +107,7 @@ function MitreSection({ alert }: { alert: Alert }) {
   )
 }
 
-function ProcessLineage({ process, parent }: { process?: string; parent?: string }) {
-  if (!process && !parent) return null
-  const nodes = parent ? [parent, process!] : [process!]
-  return (
-    <section>
-      <div className="flex items-center justify-between mb-4 border-b border-outline-variant pb-2">
-        <h2 className="font-label-caps text-label-caps text-primary tracking-tighter">// EXECUTION LINEAGE</h2>
-      </div>
-      <div className="w-full h-32 border border-outline-variant bg-surface-container-lowest relative overflow-hidden flex items-center justify-center px-4">
-        <div
-          className="absolute inset-0 opacity-10 pointer-events-none"
-          style={{ backgroundImage: 'radial-gradient(#00ff88 1px, transparent 1px)', backgroundSize: '20px 20px' }}
-        />
-        <div className="z-10 flex items-center gap-4 flex-wrap justify-center">
-          {nodes.map((node, i) => (
-            <div key={node} className="flex items-center gap-4">
-              <div
-                className={[
-                  'px-3 py-1 border font-code-sm text-code-sm',
-                  i === nodes.length - 1
-                    ? 'border-primary-container bg-primary-container/10 text-primary-container'
-                    : 'border-outline-variant bg-surface-variant',
-                ].join(' ')}
-              >
-                {node}
-              </div>
-              {i < nodes.length - 1 && (
-                <div className="flex items-center">
-                  <div className="w-8 h-px bg-outline-variant" />
-                  <div className="border-t-4 border-b-4 border-l-4 border-t-transparent border-b-transparent border-l-outline-variant" />
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
+
 
 function TriagePanel({
   scenarioId,
@@ -178,7 +124,6 @@ function TriagePanel({
 }) {
   const navigate = useNavigate()
   const [verdict, setVerdict] = useState<TriageVerdict | null>(null)
-  const [notes, setNotes] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
 
@@ -187,7 +132,7 @@ function TriagePanel({
     setSubmitting(true)
     setSubmitError('')
     try {
-      const res = await submitTriage(scenarioId, alertIndex, { verdict, notes: notes || undefined })
+      const res = await submitTriage(scenarioId, alertIndex, { verdict })
       onSubmit(res.triage)
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Submission failed')
@@ -210,7 +155,6 @@ function TriagePanel({
           {[
             ['verdict',   existing.verdict.toUpperCase()],
             ['submitted', existing.submittedAt.split('T')[0]],
-            ...(existing.notes ? [['notes', existing.notes]] : []),
           ].map(([k, v]) => (
             <div key={k} className="grid grid-cols-3 bg-surface-container-lowest p-3">
               <span className="font-code-sm text-code-sm text-on-surface-variant">{k}</span>
@@ -254,22 +198,6 @@ function TriagePanel({
               </button>
             )
           })}
-        </div>
-
-        {/* Notes */}
-        <div className="relative">
-          <div className="absolute top-2 left-3 font-code-sm text-code-sm text-on-surface-variant pointer-events-none">
-            &gt; ANALYST NOTES
-          </div>
-          <textarea
-            value={notes}
-            onChange={e => setNotes(e.target.value)}
-            placeholder="Input evidence analysis or justification for verdict..."
-            className="w-full h-40 bg-surface-container-lowest border border-outline-variant focus:border-primary-container focus:outline-none text-primary-container font-code-sm text-code-sm p-3 pt-8 resize-none"
-          />
-          <div className="absolute bottom-2 right-3 text-[9px] text-on-surface-variant">
-            AUTO_SAVE: ENABLED
-          </div>
         </div>
 
         {submitError && <ErrorMessage message={submitError} />}
@@ -433,10 +361,7 @@ export default function AlertTriage() {
 
           <MitreSection alert={alert} />
 
-          <ProcessLineage
-            process={typeof alert.process === 'string' ? alert.process : undefined}
-            parent={typeof alert.parent_process === 'string' ? alert.parent_process : undefined}
-          />
+
         </div>
 
         {/* Right: triage */}
