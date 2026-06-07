@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { getAlert, getScenarioSummary, submitTriage } from '../api'
+import { getAlert, getScenarioSummary } from '../api'
 import type { Alert, AlertSeverity, TriageResult, TriageVerdict } from '../types'
 import SeverityBadge from '../components/SeverityBadge'
 import TerminalLoader from '../components/TerminalLoader'
@@ -188,7 +188,14 @@ function TriagePanel({
     setTimeout(() => {
       setSubmitting(false)
       const isCorrect = actualVerdict ? verdict === actualVerdict : true
-      onSubmit({ verdict, submittedAt: new Date().toISOString(), isCorrect })
+      onSubmit({ 
+        scenarioId,
+        alertIndex: alert._index,
+        alertName: alert.alert_name,
+        verdict, 
+        submittedAt: new Date().toISOString(), 
+        isCorrect 
+      })
       
       const isLast = alert._index >= totalAlerts - 1
       if (!isLast) {
@@ -200,7 +207,7 @@ function TriagePanel({
   }
 
   if (existing) {
-    const isLast = alertIndex >= totalAlerts - 1
+    const isLast = alert._index >= totalAlerts - 1
     return (
       <div className="border border-primary-container/30 bg-surface-container p-6 space-y-6">
         <h2 className="font-label-caps text-label-caps text-primary flex items-center gap-2">
@@ -222,7 +229,7 @@ function TriagePanel({
           ))}
         </div>
         <button
-          onClick={() => navigate(isLast ? `/scenarios/${scenarioId}` : `/scenarios/${scenarioId}/alerts/${alertIndex + 1}`)}
+          onClick={() => navigate(isLast ? `/scenarios/${scenarioId}` : `/scenarios/${scenarioId}/alerts/${alert._index + 1}`)}
           className="w-full h-12 bg-primary-container text-on-primary-container font-label-caps text-label-caps hover:bg-primary-fixed-dim transition-colors flex items-center justify-center gap-2"
         >
           {isLast ? 'BACK TO SCENARIO' : <>NEXT ALERT <span className="material-symbols-outlined text-[16px]">chevron_right</span></>}
