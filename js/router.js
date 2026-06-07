@@ -13,9 +13,10 @@ export function createRouter(appHandlers) {
         const path = window.location.pathname;
 
         if (path.startsWith('/soc-sim')) {
-            // If we somehow booted the main app on a /soc-sim route, 
-            // force a hard reload to let the web server serve the React app
-            window.location.replace(path);
+            // If router.js is executing on a /soc-sim route, it means the web server 
+            // failed to serve the React app's index.html and incorrectly served this main app's index.html instead.
+            // DO NOT redirect here or it will cause an infinite loop.
+            appHandlers.show404();
             return;
         }
 
