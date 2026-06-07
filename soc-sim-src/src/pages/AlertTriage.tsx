@@ -37,6 +37,50 @@ const VERDICTS: VerdictOption[] = [
   },
 ]
 
+function JsonViewer({ data, name, initialExpanded = false }: { data: any; name?: string; initialExpanded?: boolean }) {
+  const [expanded, setExpanded] = useState(initialExpanded)
+  const isObject = typeof data === 'object' && data !== null
+  const isArray = Array.isArray(data)
+
+  if (!isObject) {
+    return (
+      <div className="flex gap-2">
+        {name && <span className="text-on-surface-variant shrink-0">{name}:</span>}
+        <span className="text-primary break-all">{String(data)}</span>
+      </div>
+    )
+  }
+
+  const keys = Object.keys(data)
+  const isEmpty = keys.length === 0
+
+  return (
+    <div className="font-code-sm text-code-sm">
+      <div 
+        className="cursor-pointer hover:bg-surface-variant inline-flex items-center gap-1 select-none text-primary-container py-0.5 px-1 -ml-1 transition-colors"
+        onClick={() => !isEmpty && setExpanded(!expanded)}
+      >
+        <span className={`material-symbols-outlined text-[14px] transition-transform ${expanded ? 'rotate-90' : ''} ${isEmpty ? 'opacity-0' : 'opacity-70'}`}>
+          chevron_right
+        </span>
+        {name && <span className="text-on-surface-variant">{name}: </span>}
+        <span className="text-on-surface-variant/70 italic">
+          {isArray ? `[${keys.length} items]` : `{${keys.length} keys}`}
+        </span>
+      </div>
+      {expanded && !isEmpty && (
+        <div className="pl-4 border-l border-outline-variant/30 ml-1.5 mt-0.5 space-y-0.5">
+          {keys.map(key => (
+            <div key={key}>
+              <JsonViewer data={data[key as keyof typeof data]} name={isArray ? undefined : key} />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function AlertFieldsPanel({ alert }: { alert: Alert & { _index: number } }) {
   const [cmdExpanded, setCmdExpanded] = useState(false)
 
@@ -50,13 +94,34 @@ function AlertFieldsPanel({ alert }: { alert: Alert & { _index: number } }) {
   return (
     <div className="space-y-[1px] bg-outline-variant">
       {displayFields.map(([key, val]) => {
-        const strVal = String(val)
+        let parsedData = null
+        let isJson = false
+        if (typeof val === 'object' && val !== null) {
+          isJson = true
+          parsedData = val
+        } else if (typeof val === 'string') {
+          try {
+            const parsed = JSON.parse(val)
+            if (typeof parsed === 'object' && parsed !== null) {
+              isJson = true
+              parsedData = parsed
+            }
+          } catch (e) {
+            // ignore
+          }
+        }
+
         const isCmdline = key === 'cmdline'
+        const strVal = String(val)
 
         return (
           <div key={key} className="grid grid-cols-3 bg-surface-container-lowest p-3 items-start">
             <span className="font-code-sm text-code-sm text-on-surface-variant">{key}</span>
-            {isCmdline ? (
+            {isJson ? (
+              <div className="col-span-2 overflow-x-auto bg-black/20 p-2 border border-outline-variant/30">
+                <JsonViewer data={parsedData} initialExpanded={true} />
+              </div>
+            ) : isCmdline ? (
               <div className="col-span-2 bg-black/40 p-3 border border-outline-variant">
                 <code className="font-code-sm text-code-sm text-primary-container break-all block">
                   {cmdExpanded ? strVal : strVal.slice(0, 120)}
