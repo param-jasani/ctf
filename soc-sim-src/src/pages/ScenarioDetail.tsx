@@ -106,10 +106,10 @@ function DashboardPanel({ triages }: { triages: TriageResult[] }) {
   const correct = triages.filter(t => t.isCorrect).length;
   const avgAccuracy = Math.round((correct / total) * 100);
   
-  const validTimes = triages.map(t => t.timeToTriageMs || 0).filter(t => t > 0);
-  const mttt = validTimes.length ? validTimes.reduce((a, b) => a + b, 0) / validTimes.length : 0;
-  const bestTtt = validTimes.length ? Math.min(...validTimes) : 0;
-  const worstTtt = validTimes.length ? Math.max(...validTimes) : 0;
+  const validTimes = triages.map(t => t.timeToRespondMs || 0).filter(t => t > 0);
+  const mttr = validTimes.length ? validTimes.reduce((a, b) => a + b, 0) / validTimes.length : 0;
+  const bestTtr = validTimes.length ? Math.min(...validTimes) : 0;
+  const worstTtr = validTimes.length ? Math.max(...validTimes) : 0;
 
   const formatMs = (ms: number) => (ms / 1000).toFixed(1) + 's';
 
@@ -129,9 +129,9 @@ function DashboardPanel({ triages }: { triages: TriageResult[] }) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           ['AVG ACCURACY', `${avgAccuracy}%`],
-          ['MTTT', formatMs(mttt)],
-          ['BEST TTT', formatMs(bestTtt)],
-          ['WORST TTT', formatMs(worstTtt)],
+          ['MTTR', formatMs(mttr)],
+          ['BEST TTR', formatMs(bestTtr)],
+          ['WORST TTR', formatMs(worstTtr)],
         ].map(([k, v]) => (
           <div key={k} className="p-4 border border-outline-variant bg-surface-container-low flex flex-col items-center justify-center gap-1">
             <span className="text-[10px] text-on-surface-variant font-bold">{k}</span>
