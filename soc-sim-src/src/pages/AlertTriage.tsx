@@ -160,14 +160,14 @@ function TriagePanel({
   totalAlerts,
   existing,
   onSubmit,
-  timeToTriageMs,
+  timeToRespondMs,
 }: {
   scenarioId: string
   alert: Alert & { _index: number }
   totalAlerts: number
-  existing: (TriageResult & { isCorrect?: boolean; timeToTriageMs?: number }) | undefined
-  onSubmit: (result: TriageResult & { isCorrect: boolean; timeToTriageMs?: number }) => void
-  timeToTriageMs?: number
+  existing: (TriageResult & { isCorrect?: boolean; timeToRespondMs?: number }) | undefined
+  onSubmit: (result: TriageResult & { isCorrect: boolean; timeToRespondMs?: number }) => void
+  timeToRespondMs?: number
 }) {
   const navigate = useNavigate()
   const [verdict, setVerdict] = useState<TriageVerdict | null>(null)
@@ -199,7 +199,7 @@ function TriagePanel({
         verdict, 
         submittedAt: new Date().toISOString(), 
         isCorrect,
-        timeToTriageMs
+        timeToRespondMs
       })
       
       const isLast = alert._index >= totalAlerts - 1
@@ -462,7 +462,7 @@ export default function AlertTriage() {
               totalAlerts={visibleCount}
               existing={existing}
               onSubmit={result => recordTriage(triageKey, result)}
-              timeToTriageMs={startTime ? Date.now() - startTime : 0}
+              timeToRespondMs={startTime ? Date.now() - startTime : 0}
             />
           </div>
         </div>
