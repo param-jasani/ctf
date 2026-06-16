@@ -84,7 +84,6 @@ function JsonViewer({ data, name, initialExpanded = false }: { data: any; name?:
 }
 
 function AlertFieldsPanel({ alert }: { alert: Alert & { _index: number } }) {
-  const [cmdExpanded, setCmdExpanded] = useState(false)
 
   const displayFields = Object.entries(alert).filter(([key, val]) => {
     if (SKIP_FIELDS.has(key)) return false
@@ -126,18 +125,9 @@ function AlertFieldsPanel({ alert }: { alert: Alert & { _index: number } }) {
               </div>
             ) : isCmdline ? (
               <div className="col-span-2 bg-black/40 p-3 border border-outline-variant">
-                <code className="font-code-sm text-code-sm text-primary-container break-all block">
-                  {cmdExpanded ? strVal : strVal.slice(0, 120)}
-                  {strVal.length > 120 && !cmdExpanded && '…'}
+                <code className="font-code-sm text-code-sm text-primary-container break-all block whitespace-pre-wrap">
+                  {strVal}
                 </code>
-                {strVal.length > 120 && (
-                  <button
-                    onClick={() => setCmdExpanded(x => !x)}
-                    className="mt-2 text-[10px] text-on-surface-variant hover:text-primary-container transition-colors"
-                  >
-                    {cmdExpanded ? '// COLLAPSE' : '// EXPAND FULL PAYLOAD'}
-                  </button>
-                )}
                 <div className="mt-2 text-[10px] text-on-surface-variant italic">// ENCODED PAYLOAD DETECTED</div>
               </div>
             ) : (

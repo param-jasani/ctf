@@ -249,8 +249,8 @@ function AlertTable({
                   <td className="px-4 py-4 font-code-sm text-code-sm text-on-surface-variant whitespace-nowrap">
                     {alert._time.split('T')[1]?.replace('Z', '') ?? alert._time}
                   </td>
-                  <td className="px-4 py-4 font-body-lg text-body-lg max-w-[260px]">
-                    <span className="line-clamp-1">{alert.alert_name}</span>
+                  <td className="px-4 py-4 font-body-lg text-body-lg max-w-[260px] whitespace-normal break-words">
+                    <span>{alert.alert_name}</span>
                   </td>
                   <td className="px-4 py-4">
                     <SeverityBadge severity={alert.alert_severity} />
