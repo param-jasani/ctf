@@ -4,4 +4,4 @@ DS-002,DB_HR_ROSTER,"Employee names, internal emails, desk locations",Internal,E
 DS-003,DB_FINANCE_Q3,"Quarterly revenue, vendor contracts, budget forecasts",Confidential,Encrypted
 DS-004,DB_PROD_CUSTOMERS,"Customer names, shipping addresses, credit card hashes",Internal,Unencrypted
 DS-005,DB_AUTH_LOGS,"Server IP addresses, system timestamps",Internal,Unencrypted
-DS-006,DB_ANALYTICS_AGG,"Aggregated marketing metrics, anonymous page views",Confidential,Encrypted
+DS-006,DB_METRICS_AGG,"Aggregated marketing metrics, anonymous page views",Confidential,Encrypted

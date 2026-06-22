@@ -16,7 +16,7 @@
 | DS-003 | DB_FINANCE_Q3 | Quarterly revenue, vendor contracts, budget forecasts | Confidential |
 | DS-004 | DB_PROD_CUSTOMERS | Customer names, shipping addresses, credit card hashes | Internal |
 | DS-005 | DB_AUTH_LOGS | Server IP addresses, system timestamps | Internal |
-| DS-006 | DB_ANALYTICS_AGG | Aggregated marketing metrics, anonymous page views | Confidential |
+| DS-006 | DB_METRICS_AGG | Aggregated marketing metrics, anonymous page views | Confidential |
 
 ---
 *End of Report*

@@ -22,9 +22,9 @@
       "files": [
         {
           "id": "warehouse_inventory",
-          "name": "warehouse_inventory_export.csv",
+          "name": "warehouse_datasets_export.csv",
           "type": "csv",
-          "path": "/grc/scenarios/scenario-3/inventory.csv"
+          "path": "/grc/scenarios/scenario-3/datasets.csv"
         }
       ]
     },
@@ -38,7 +38,7 @@
           "type": "markdown",
           "path": "/grc/scenarios/scenario-3/audit_report.md",
           "interactive": true,
-          "solutionTexts": ["DB_PROD_CUSTOMERS", "DB_ANALYTICS_AGG"]
+          "solutionTexts": ["DB_PROD_CUSTOMERS", "DB_METRICS_AGG"]
         }
       ]
     }
