@@ -1,5 +1,6 @@
 import { getAlert, getScenarioSummary, submitTriage as submitTriageApi } from '../api.js';
-import { getTriage, recordTriage } from '../triageStore.js';
+import { getTriage, recordTriage, getScenarioTriages } from '../triageStore.js';
+import { getVisibleCount, initScenarioStream } from '../alertStream.js';
 
 const SKIP_FIELDS = new Set(['index', 'sourcetype', 'status', '_index', 'alert_name', 'alert_severity', 'source', 'host', '_time', 'mitre_tactic', 'mitre_technique']);
 
@@ -102,6 +103,38 @@ export async function renderTriage(scenarioId, alertIndex) {
       getAlert(scenarioId, alertIndex),
       getScenarioSummary(scenarioId)
     ]);
+    
+    if (getVisibleCount() === 0) {
+      initScenarioStream(scenarioId, summary.totalAlerts);
+    }
+    
+    const triages = getScenarioTriages(scenarioId);
+    if (triages.length === summary.totalAlerts && summary.totalAlerts > 0) {
+      if (container) container.innerHTML = `
+        <div class="max-w-3xl mx-auto pt-10 px-4">
+          <div class="bg-danger text-white border-2 border-ink p-6 font-mono shadow-[4px_4px_0_0_#0b0b0b]">
+            <h2 class="text-xl font-bold mb-2">ACCESS DENIED</h2>
+            <p>This scenario has already been completed. You cannot access or modify alerts post-completion.</p>
+            <button onclick="window.navigateSoc('/soc/scenarios/${scenarioId}')" class="mt-6 border-2 border-white px-4 py-2 hover:bg-white hover:text-danger transition-colors font-bold uppercase tracking-widest text-xs">Return to Dashboard</button>
+          </div>
+        </div>
+      `;
+      return;
+    }
+    
+    if (alertIndex >= getVisibleCount()) {
+      if (container) container.innerHTML = `
+        <div class="max-w-3xl mx-auto pt-10 px-4">
+          <div class="bg-danger text-white border-2 border-ink p-6 font-mono shadow-[4px_4px_0_0_#0b0b0b]">
+            <h2 class="text-xl font-bold mb-2">ACCESS DENIED</h2>
+            <p>Alert #${alertIndex} has not yet been ingested by the SOC stream.</p>
+            <button onclick="window.navigateSoc('/soc/scenarios/${scenarioId}')" class="mt-6 border-2 border-white px-4 py-2 hover:bg-white hover:text-danger transition-colors font-bold uppercase tracking-widest text-xs">Return to Dashboard</button>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
     currentAlert = alertData;
     currentTotalAlerts = summary.totalAlerts;
     updateTriageUI();
@@ -278,6 +311,17 @@ function updateTriageUI() {
       if (isLast) {
         window.navigateSoc(`/soc/scenarios/${currentScenarioId}`);
       } else {
+        if (currentAlert._index + 1 >= getVisibleCount()) {
+          const btn = document.getElementById('btn-next-alert');
+          const originalText = btn.innerText;
+          btn.innerText = 'WAITING FOR STREAM...';
+          btn.classList.add('opacity-50', 'cursor-not-allowed');
+          setTimeout(() => {
+            btn.innerText = originalText;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+          }, 2000);
+          return;
+        }
         window.navigateSoc(`/soc/scenarios/${currentScenarioId}/alerts/${currentAlert._index + 1}`);
       }
     });
