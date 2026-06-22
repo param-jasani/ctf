@@ -1,4 +1,4 @@
-import { getAlert, submitTriage as submitTriageApi } from '../api.js';
+import { getAlert, getScenarioSummary, submitTriage as submitTriageApi } from '../api.js';
 import { getTriage, recordTriage } from '../triageStore.js';
 
 const SKIP_FIELDS = new Set(['index', 'sourcetype', 'status', '_index', 'alert_name', 'alert_severity', 'source', 'host', '_time', 'mitre_tactic', 'mitre_technique']);
@@ -97,8 +97,12 @@ export async function renderTriage(scenarioId, alertIndex) {
   selectedVerdict = null;
   
   try {
-    const alertData = await getAlert(scenarioId, alertIndex);
+    const [alertData, summary] = await Promise.all([
+      getAlert(scenarioId, alertIndex),
+      getScenarioSummary(scenarioId)
+    ]);
     currentAlert = alertData;
+    currentTotalAlerts = summary.totalAlerts;
     updateTriageUI();
   } catch (err) {
     if (container) container.innerHTML = `<div class="bg-danger text-white border-2 border-ink p-4 font-mono font-bold shadow-[4px_4px_0_0_#0b0b0b]">${err.message || 'Failed to load alert'}</div>`;
@@ -123,6 +127,7 @@ function updateTriageUI() {
   
   if (existing) {
     const isCorrect = existing.isCorrect;
+    const isLast = currentAlert._index >= currentTotalAlerts - 1;
     triagePanelHtml = `
       <div class="border-2 border-ink bg-white p-6 space-y-6 shadow-[8px_8px_0_0_#0b0b0b]">
         <h2 class="font-mono text-[10px] font-bold uppercase text-ink flex items-center gap-2">
@@ -144,8 +149,10 @@ function updateTriageUI() {
           </div>
         </div>
         <div class="flex gap-4">
-          <button id="btn-next-alert" class="btn-primary flex-1 !text-xs text-center flex justify-center items-center gap-2">NEXT ALERT →</button>
-          <button id="btn-back-scenario" class="btn-secondary">SCENARIO SUMMARY</button>
+          <button id="btn-next-alert" class="btn-primary flex-1 !text-xs text-center flex justify-center items-center gap-2">
+            ${isLast ? 'BACK TO SCENARIO' : 'NEXT ALERT →'}
+          </button>
+          ${isLast ? '' : '<button id="btn-back-scenario" class="btn-secondary">SCENARIO SUMMARY</button>'}
         </div>
       </div>
     `;
@@ -259,11 +266,19 @@ function updateTriageUI() {
       });
     }
   } else {
-    document.getElementById('btn-back-scenario').addEventListener('click', () => {
-      window.navigateSoc(`/soc/scenarios/${currentScenarioId}`);
-    });
+    const isLast = currentAlert._index >= currentTotalAlerts - 1;
+    const backBtn = document.getElementById('btn-back-scenario');
+    if (backBtn) {
+      backBtn.addEventListener('click', () => {
+        window.navigateSoc(`/soc/scenarios/${currentScenarioId}`);
+      });
+    }
     document.getElementById('btn-next-alert').addEventListener('click', () => {
-      window.navigateSoc(`/soc/scenarios/${currentScenarioId}/alerts/${currentAlert._index + 1}`);
+      if (isLast) {
+        window.navigateSoc(`/soc/scenarios/${currentScenarioId}`);
+      } else {
+        window.navigateSoc(`/soc/scenarios/${currentScenarioId}/alerts/${currentAlert._index + 1}`);
+      }
     });
   }
 }
