@@ -3,13 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <script>
-      // Early intercept: if this page was served for a /soc route,
-      // stop everything and redirect to the SOC Simulator app.
+      // Early intercept: if this page was served for a /soc or /grc route,
+      // stop everything and redirect to the respective Simulator app.
       (function() {
         var p = window.location.pathname;
         if (p.indexOf('/soc') === 0 && p.indexOf('/soc/index.html') === -1) {
           window.location.replace('/soc/index.html');
-          // Halt further parsing of this document
+          document.write('');
+          document.close();
+        } else if (p.indexOf('/grc') === 0 && p.indexOf('/grc/index.html') === -1) {
+          window.location.replace('/grc/index.html');
           document.write('');
           document.close();
         }
@@ -158,13 +161,13 @@
                         <p class="font-mono text-sm text-ink opacity-80">Train as a Security Operations Center analyst. Analyze logs, investigate alerts, and defend.</p>
                     </a>
 
-                    <button onclick="window.showToast('error', 'GRC SIMULATOR IS CURRENTLY IN DEVELOPMENT. COMING SOON.')" class="text-left w-full block bg-canvas border-2 border-ink border-dashed opacity-70 hover:opacity-100 transition-opacity p-6 cursor-pointer group">
+                    <a href="/grc/practice" data-nav class="group block bg-white border-2 border-ink shadow-[6px_6px_0_0_#0b0b0b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0_0_#0b0b0b] transition-all p-6">
                         <div class="flex items-center justify-between mb-2">
-                            <h3 class="font-black text-2xl uppercase tracking-tighter group-hover:text-ink transition-colors">GRC Simulator</h3>
-                            <span class="font-mono text-[10px] bg-danger text-white px-2 py-1 border-2 border-ink">DEV</span>
+                            <h3 class="font-black text-2xl uppercase tracking-tighter group-hover:text-cyan transition-colors">GRC Simulator</h3>
+                            <span class="font-mono text-xl">↗</span>
                         </div>
-                        <p class="font-mono text-sm text-ink opacity-80">Governance, Risk, and Compliance. (Coming Soon)</p>
-                    </button>
+                        <p class="font-mono text-sm text-ink opacity-80">Governance, Risk, and Compliance. Audit policies and assess risks.</p>
+                    </a>
                 </div>
 
                 <!-- Compete Column -->
@@ -190,13 +193,13 @@
                         <p class="font-mono text-sm text-ink opacity-80">Live defense scenarios under active attack. Identify breaches and mitigate in real-time.</p>
                     </a>
 
-                    <button onclick="window.showToast('error', 'GRC SIMULATOR IS CURRENTLY IN DEVELOPMENT. COMING SOON.')" class="text-left w-full block bg-canvas border-2 border-ink border-dashed opacity-70 hover:opacity-100 transition-opacity p-6 cursor-pointer group">
+                    <a href="/grc/compete" data-nav class="group block bg-white border-2 border-ink shadow-[6px_6px_0_0_#0b0b0b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0_0_#0b0b0b] transition-all p-6">
                         <div class="flex items-center justify-between mb-2">
-                            <h3 class="font-black text-2xl uppercase tracking-tighter group-hover:text-ink transition-colors">GRC Audits</h3>
-                            <span class="font-mono text-[10px] bg-danger text-white px-2 py-1 border-2 border-ink">DEV</span>
+                            <h3 class="font-black text-2xl uppercase tracking-tighter group-hover:text-danger transition-colors">GRC Audits</h3>
+                            <span class="font-mono text-xl">↗</span>
                         </div>
-                        <p class="font-mono text-sm text-ink opacity-80">Live compliance audits and risk assessments. (Coming Soon)</p>
-                    </button>
+                        <p class="font-mono text-sm text-ink opacity-80">Live compliance audits and risk assessments under active scenarios.</p>
+                    </a>
                 </div>
             </div>
         </div>
