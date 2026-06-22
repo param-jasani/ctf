@@ -1,6 +1,6 @@
 export function createRouter(appHandlers) {
     const navigate = (url) => {
-        if (url.startsWith('/soc')) {
+        if (url.startsWith('/soc') || url.startsWith('/grc')) {
             window.location.href = url;
             return;
         }
@@ -16,6 +16,15 @@ export function createRouter(appHandlers) {
             // Attempt to explicitly request the index file if we got caught in the root SPA fallback
             if (path === '/soc' || path === '/soc/') {
                 window.location.replace('/soc/index.html');
+                return;
+            }
+            appHandlers.show404();
+            return;
+        }
+
+        if (path.startsWith('/grc')) {
+            if (path === '/grc' || path === '/grc/') {
+                window.location.replace('/grc/index.html');
                 return;
             }
             appHandlers.show404();
