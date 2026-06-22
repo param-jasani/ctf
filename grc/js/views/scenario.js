@@ -232,7 +232,7 @@ function renderMarkdown(mdText, container, fileDef, pdfBtn, submitBtn) {
             // Parse line with marked (inline mostly)
             let parsed = marked.parse(line);
             // Remove wrapping p tags that marked adds
-            parsed = parsed.replace(/^<p>/, '').replace(/<\\/p>\\n?$/, '');
+            parsed = parsed.replace(/^<p>/, '').replace('</p>', '').trim();
             
             html += `<div class="md-interactive-line" data-line-index="${index}" data-raw="${DOMPurify.sanitize(line)}">${DOMPurify.sanitize(parsed)}</div>`;
         });
