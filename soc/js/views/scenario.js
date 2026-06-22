@@ -36,16 +36,16 @@ function renderDashboard(triages) {
       
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         ${[
-          ['AVG ACCURACY', \`\${avgAccuracy}%\`],
+          ['AVG ACCURACY', `${avgAccuracy}%`],
           ['MTTR', formatMs(mttr)],
           ['BEST TTR', formatMs(bestTtr)],
           ['WORST TTR', formatMs(worstTtr)],
-        ].map(([k, v]) => \`
+        ].map(([k, v]) => `
           <div class="p-4 border-2 border-ink bg-canvas flex flex-col items-center justify-center gap-1 shadow-[2px_2px_0_0_#0b0b0b]">
-            <span class="text-[10px] text-ink opacity-80 font-bold uppercase">\${k}</span>
-            <span class="text-xl font-black text-cyan uppercase">\${v}</span>
+            <span class="text-[10px] text-ink opacity-80 font-bold uppercase">${k}</span>
+            <span class="text-xl font-black text-cyan uppercase">${v}</span>
           </div>
-        \`).join('')}
+        `).join('')}
       </div>
     </div>
   `;
@@ -63,7 +63,7 @@ export async function renderScenario(scenarioId) {
     <div class="flex items-center gap-4 mb-6">
       <button onclick="window.navigateSoc('/soc/practice')" class="btn-secondary">&lt; BACK</button>
       <h2 class="font-black text-3xl uppercase tracking-widest text-ink">
-        <span class="text-cyan animate-pulse">#</span> \${scenarioId}
+        <span class="text-cyan animate-pulse">#</span> ${scenarioId}
       </h2>
     </div>
     
@@ -96,7 +96,6 @@ export async function renderScenario(scenarioId) {
     const allAlerts = await listAlerts(scenarioId);
     const allSources = Array.from(new Set(allAlerts.alerts.map(a => a.source))).sort();
     
-    // Summary Panel HTML
     const maxSev = Math.max(...Object.values(summary.bySeverity), 1);
     const maxSrc = Math.max(...Object.values(summary.bySource), 1);
     
@@ -109,18 +108,18 @@ export async function renderScenario(scenarioId) {
           <div class="w-full h-[160px] border-2 border-ink relative bg-ink p-4 flex flex-col justify-end overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-[2px] bg-cyan/20 animate-[scan_8s_linear_infinite] z-10 pointer-events-none"></div>
             <div class="flex items-end gap-2 h-full">
-              \${SEVERITIES.map(sev => {
+              ${SEVERITIES.map(sev => {
                 const count = summary.bySeverity[sev] || 0;
                 const pct = Math.round((count / maxSev) * 100);
-                return \`
+                return `
                   <div class="flex-1 flex flex-col items-center justify-end gap-1 h-full text-white">
-                    <span class="text-[10px] font-mono">\${count}</span>
-                    <div class="w-full opacity-80 border-t-2 border-\${sev === 'critical' ? 'danger' : sev === 'high' ? 'warning' : 'cyan'}" style="height: \${Math.max(pct, 4)}%">
-                      <div class="w-full h-full \${SEV_COLORS[sev]} opacity-80"></div>
+                    <span class="text-[10px] font-mono">${count}</span>
+                    <div class="w-full opacity-80 border-t-2 border-${sev === 'critical' ? 'danger' : sev === 'high' ? 'warning' : 'cyan'}" style="height: ${Math.max(pct, 4)}%">
+                      <div class="w-full h-full ${SEV_COLORS[sev]} opacity-80"></div>
                     </div>
-                    <span class="text-[10px] font-bold shrink-0">\${sev === 'informational' ? 'INFO' : sev.slice(0,4).toUpperCase()}</span>
+                    <span class="text-[10px] font-bold shrink-0">${sev === 'informational' ? 'INFO' : sev.slice(0,4).toUpperCase()}</span>
                   </div>
-                \`;
+                `;
               }).join('')}
             </div>
           </div>
@@ -131,35 +130,34 @@ export async function renderScenario(scenarioId) {
             <span class="text-cyan">//</span> BY SOURCE
           </h3>
           <div class="space-y-3">
-            \${Object.entries(summary.bySource)
+            ${Object.entries(summary.bySource)
               .sort(([, a], [, b]) => b - a)
               .slice(0, 6)
-              .map(([src, count]) => \`
+              .map(([src, count]) => `
                 <div class="flex flex-col gap-1">
                   <div class="flex justify-between text-[10px] font-bold text-ink uppercase">
-                    <span class="truncate mr-2">\${src}</span>
-                    <span>\${count}</span>
+                    <span class="truncate mr-2">${src}</span>
+                    <span>${count}</span>
                   </div>
                   <div class="h-1 w-full bg-canvas border border-ink">
-                    <div class="h-full bg-cyan" style="width: \${Math.round((count / maxSrc) * 100)}%"></div>
+                    <div class="h-full bg-cyan" style="width: ${Math.round((count / maxSrc) * 100)}%"></div>
                   </div>
                 </div>
-              \`).join('')}
+              `).join('')}
           </div>
         </div>
 
         <div class="mt-auto border-2 border-ink p-4 bg-canvas shadow-[inset_2px_2px_0_0_#e5e5e5]">
           <p class="font-mono text-xs text-ink leading-relaxed">
             <span class="font-bold">&gt; SCENARIO_STATUS:</span> ACTIVE<br />
-            <span class="font-bold">&gt; TOTAL_ALERTS:</span> \${summary.totalAlerts}<br />
-            <span class="font-bold">&gt; TITLE:</span> \${summary.title}
+            <span class="font-bold">&gt; TOTAL_ALERTS:</span> ${summary.totalAlerts}<br />
+            <span class="font-bold">&gt; TITLE:</span> ${summary.title}
             <span class="block-cursor"></span>
           </p>
         </div>
       </section>
     `;
     
-    // Main Panel structure
     const mainHtml = `
       <section class="col-span-12 md:col-span-8 flex flex-col bg-white border-2 border-ink shadow-[4px_4px_0_0_#0b0b0b] h-full overflow-hidden">
         <div class="h-14 border-b-2 border-ink flex items-center px-6 gap-4 bg-canvas shrink-0">
@@ -170,21 +168,21 @@ export async function renderScenario(scenarioId) {
           <div class="flex items-center gap-2 flex-wrap">
             <select id="filter-sev" class="input !py-1 !text-[10px]">
               <option value="">SEVERITY: ALL</option>
-              \${['informational', 'low', 'medium', 'high', 'critical'].map(s => 
-                \`<option value="\${s}" \${currentFilters.severity === s ? 'selected' : ''}>\${s.toUpperCase()}</option>\`
+              ${['informational', 'low', 'medium', 'high', 'critical'].map(s => 
+                `<option value="${s}" ${currentFilters.severity === s ? 'selected' : ''}>${s.toUpperCase()}</option>`
               ).join('')}
             </select>
             <select id="filter-src" class="input !py-1 !text-[10px]">
               <option value="">SOURCE: ALL</option>
-              \${allSources.map(s => 
-                \`<option value="\${s}" \${currentFilters.source === s ? 'selected' : ''}>\${s.toUpperCase()}</option>\`
+              ${allSources.map(s => 
+                `<option value="${s}" ${currentFilters.source === s ? 'selected' : ''}>${s.toUpperCase()}</option>`
               ).join('')}
             </select>
           </div>
         </div>
         
         <div class="flex-1 overflow-auto flex flex-col relative bg-canvas">
-          \${isDone ? renderDashboard(triages) : ''}
+          ${isDone ? renderDashboard(triages) : ''}
           <div id="alerts-table-container" class="flex-1"></div>
         </div>
       </section>
@@ -208,7 +206,6 @@ export async function renderScenario(scenarioId) {
       
       if (unsubscribeStream) unsubscribeStream();
       unsubscribeStream = subscribeToStream((count) => {
-        // Only show alerts up to stream count
         const displayAlerts = visibleAlerts.filter(a => a._index < count);
         document.getElementById('alert-count').innerText = displayAlerts.length;
         
@@ -226,39 +223,39 @@ export async function renderScenario(scenarioId) {
           <table class="w-full border-collapse text-left bg-white">
             <thead class="sticky top-0 bg-canvas z-10 border-b-2 border-ink shadow-sm">
               <tr>
-                \${['_TIME', 'ALERT_NAME', 'SEV', 'SOURCE', 'HOST', ''].map(h => 
-                  \`<th class="px-4 py-3 font-mono text-[10px] font-bold uppercase text-ink whitespace-nowrap">\${h}</th>\`
+                ${['_TIME', 'ALERT_NAME', 'SEV', 'SOURCE', 'HOST', ''].map(h => 
+                  `<th class="px-4 py-3 font-mono text-[10px] font-bold uppercase text-ink whitespace-nowrap">${h}</th>`
                 ).join('')}
               </tr>
             </thead>
             <tbody class="divide-y-2 divide-ink/20">
-              \${displayAlerts.map(alert => \`
-                <tr class="hover:bg-cyan/10 transition-colors group cursor-pointer" onclick="window.navigateSoc('/soc/scenarios/\${scenarioId}/alerts/\${alert._index}')">
+              ${displayAlerts.map(alert => `
+                <tr class="hover:bg-cyan/10 transition-colors group cursor-pointer" onclick="window.navigateSoc('/soc/scenarios/${scenarioId}/alerts/${alert._index}')">
                   <td class="px-4 py-4 font-mono text-xs text-ink opacity-80 whitespace-nowrap">
-                    \${alert._time.split('T')[1]?.replace('Z', '') || alert._time}
+                    ${alert._time.split('T')[1]?.replace('Z', '') || alert._time}
                   </td>
                   <td class="px-4 py-4 font-mono text-sm font-bold text-ink max-w-xs truncate">
-                    \${alert.alert_name}
+                    ${alert.alert_name}
                   </td>
                   <td class="px-4 py-4">
-                    <span class="font-mono text-[10px] font-bold text-white px-2 py-1 \${SEV_COLORS[alert.alert_severity] || 'bg-soc_info'} shadow-[2px_2px_0_0_#0b0b0b]">
-                      \${alert.alert_severity === 'informational' ? 'INFO' : alert.alert_severity.toUpperCase()}
+                    <span class="font-mono text-[10px] font-bold text-white px-2 py-1 ${SEV_COLORS[alert.alert_severity] || 'bg-soc_info'} shadow-[2px_2px_0_0_#0b0b0b]">
+                      ${alert.alert_severity === 'informational' ? 'INFO' : alert.alert_severity.toUpperCase()}
                     </span>
                   </td>
                   <td class="px-4 py-4 font-mono text-xs text-ink truncate max-w-[150px]">
-                    \${alert.source}
+                    ${alert.source}
                   </td>
                   <td class="px-4 py-4 font-mono text-xs text-ink truncate max-w-[150px]">
-                    \${alert.host}
+                    ${alert.host}
                   </td>
                   <td class="px-4 py-4 text-right">
-                    \${getScenarioTriages(scenarioId).some(t => t.alertIndex === alert._index) 
+                    ${getScenarioTriages(scenarioId).some(t => t.alertIndex === alert._index) 
                       ? '<span class="text-success text-xs border border-success px-1">RESOLVED</span>' 
                       : '<span class="text-cyan font-bold opacity-0 group-hover:opacity-100 transition-opacity">Triage →</span>'
                     }
                   </td>
                 </tr>
-              \`).join('')}
+              `).join('')}
             </tbody>
           </table>
         `;
