@@ -1,0 +1,8 @@
+Employee ID,Name,Department,Date Joined,Date Left,Status
+E101,Alice Smith,Engineering,2024-01-15,2026-06-01,Left
+E102,Bob Johnson,Marketing,2025-03-10,2026-06-20,Left
+E103,Charlie Davis,Sales,2023-11-05,2026-05-15,Left
+E104,Dave Evans,Engineering,2025-06-01,,Active
+E105,Eve Foster,HR,2024-08-20,,Active
+E106,Frank Green,IT,2025-11-11,2026-06-18,Left
+E107,Grace Harris,Finance,2026-01-05,,Active

@@ -1,0 +1,21 @@
+{
+  "id": "scenario-1",
+  "title": "Operation: Missing RACI",
+  "description": "A recent internal audit discovered that the Access Control Policy is incomplete. The policy lacks proper responsibility assignments. Find and highlight the sentence mentioning the missing RACI matrix to complete the finding.",
+  "departments": [
+    {
+      "id": "grc",
+      "name": "GRC Desk",
+      "files": [
+        {
+          "id": "policy_md",
+          "name": "Access_Control_Policy_v1.2.md",
+          "type": "markdown",
+          "path": "/grc/scenarios/scenario-1/policy.md",
+          "interactive": true,
+          "solutionTexts": ["A formal RACI matrix must be established"]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "id": "scenario-2",
+  "title": "Operation: Ghost Accounts",
+  "description": "Cross-reference the Joiners/Leavers list from HR (Admin Desk) with the Active Users list (IT Desk) against the GRC offboarding policy. Find the users who left the company more than 7 days ago but still have active system access. Highlight them in the interactive 'active_users.md' document on the IT Desk.",
+  "departments": [
+    {
+      "id": "grc",
+      "name": "GRC Desk",
+      "files": [
+        {
+          "id": "offboarding_policy",
+          "name": "Offboarding_Policy.md",
+          "type": "markdown",
+          "path": "/grc/scenarios/scenario-2/policy.md",
+          "interactive": false
+        }
+      ]
+    },
+    {
+      "id": "admin",
+      "name": "Admin Desk",
+      "files": [
+        {
+          "id": "joined_left",
+          "name": "joined_left_june.csv",
+          "type": "csv",
+          "path": "/grc/scenarios/scenario-2/joined_left.csv"
+        }
+      ]
+    },
+    {
+      "id": "it",
+      "name": "IT Support Desk",
+      "files": [
+        {
+          "id": "active_users_csv",
+          "name": "system_active_users.csv",
+          "type": "csv",
+          "path": "/grc/scenarios/scenario-2/active_users.csv"
+        },
+        {
+          "id": "active_users_md",
+          "name": "Interactive_Users_Audit.md",
+          "type": "markdown",
+          "path": "/grc/scenarios/scenario-2/active_users.md",
+          "interactive": true,
+          "solutionTexts": ["Alice Smith", "Charlie Davis"]
+        }
+      ]
+    }
+  ]
+}
