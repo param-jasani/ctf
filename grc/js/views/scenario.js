@@ -262,8 +262,8 @@ function renderMarkdown(mdText, container, fileDef, pdfBtn, submitBtn) {
         
         let bannerHtml = `
             <div class="mb-8 p-4 border-2 border-ink bg-warning shadow-[4px_4px_0_0_#0b0b0b]">
-                <p class="font-mono text-sm font-bold uppercase tracking-widest">> ACTION REQUIRED</p>
-                <p class="font-sans text-ink font-semibold">Review the document below. If you identify a violation or missing component, click the specific text to mark it as a finding.</p>
+                <p class="font-mono text-sm font-bold uppercase tracking-widest">> INTERACTIVE AUDIT MODE ENABLED</p>
+                <p class="font-sans text-ink font-semibold">Please review the document below carefully. To log a policy violation or finding, simply click directly on the specific sentence, list item, or table row to highlight it. You must highlight all relevant findings before submitting.</p>
             </div>
         `;
         

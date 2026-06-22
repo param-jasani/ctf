@@ -1,0 +1,46 @@
+{
+  "id": "scenario-3",
+  "title": "Audit Task: Data Classification Sweep",
+  "description": "The compliance team is verifying adherence to the internal Data Classification Policy. Review the classification standards and then cross-reference them with the current data warehouse inventory. Identify any datasets that are improperly classified or mislabeled.",
+  "departments": [
+    {
+      "id": "grc",
+      "name": "GRC Desk",
+      "files": [
+        {
+          "id": "classification_policy",
+          "name": "Data_Classification_Policy_v1.md",
+          "type": "markdown",
+          "path": "/grc/scenarios/scenario-3/policy.md",
+          "interactive": false
+        }
+      ]
+    },
+    {
+      "id": "dba",
+      "name": "Database Admin",
+      "files": [
+        {
+          "id": "warehouse_inventory",
+          "name": "warehouse_inventory_export.csv",
+          "type": "csv",
+          "path": "/grc/scenarios/scenario-3/inventory.csv"
+        }
+      ]
+    },
+    {
+      "id": "audit",
+      "name": "Audit Desk",
+      "files": [
+        {
+          "id": "audit_report",
+          "name": "Interactive_Classification_Audit.md",
+          "type": "markdown",
+          "path": "/grc/scenarios/scenario-3/audit_report.md",
+          "interactive": true,
+          "solutionTexts": ["DB_PROD_CUSTOMERS", "DB_ANALYTICS_AGG"]
+        }
+      ]
+    }
+  ]
+}

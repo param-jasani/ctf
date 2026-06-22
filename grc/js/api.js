@@ -2,7 +2,7 @@ export async function fetchScenarios() {
     try {
         // Since we don't have a backend listing, we'll hardcode the known practice scenarios for now.
         // In a real app, this would be an API call to get available scenarios.
-        const scenarios = ['scenario-1', 'scenario-2'];
+        const scenarios = ['scenario-1', 'scenario-2', 'scenario-3'];
         const results = [];
         for (const id of scenarios) {
             const data = await fetchScenario(id);
