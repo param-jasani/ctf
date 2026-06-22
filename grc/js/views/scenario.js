@@ -262,24 +262,58 @@ function renderMarkdown(mdText, container, fileDef, pdfBtn, submitBtn) {
         
         let bannerHtml = `
             <div class="mb-8 p-4 border-2 border-ink bg-warning shadow-[4px_4px_0_0_#0b0b0b]">
-                <p class="font-mono text-sm font-bold uppercase tracking-widest">> INTERACTIVE AUDIT MODE ENABLED</p>
-                <p class="font-sans text-ink font-semibold">Please review the document below carefully. To log a policy violation or finding, simply click directly on the specific sentence, list item, or table row to highlight it. You must highlight all relevant findings before submitting.</p>
+                <div class="flex justify-between items-start gap-4">
+                    <div>
+                        <p class="font-mono text-sm font-bold uppercase tracking-widest">> INTERACTIVE AUDIT MODE ENABLED</p>
+                        <p class="font-sans text-ink font-semibold mt-1">Please review the document below carefully. To log a policy violation or finding, simply click directly on the specific sentence, list item, or table row to highlight it. You must highlight all relevant findings before submitting.</p>
+                    </div>
+                    <button id="btn-clear-markings" class="btn-secondary !text-[10px] !py-1 !px-2 whitespace-nowrap bg-white text-ink hover:bg-danger hover:text-white hover:border-danger transition-colors">Clear All Markings</button>
+                </div>
             </div>
         `;
         
         container.innerHTML = bannerHtml + `<div class="prose max-w-none text-ink" id="interactive-md-container">${DOMPurify.sanitize(rawHtml)}</div>`;
         
+        document.getElementById('btn-clear-markings').onclick = () => {
+            if (confirm("Are you sure you want to clear all markings across all documents?")) {
+                window.grcHighlights = {};
+                renderFileViewer(fileDef); // Re-render to drop highlighted classes
+                showToast('success', 'All markings cleared.');
+            }
+        };
+
         const containerEl = document.getElementById('interactive-md-container');
         const blocks = containerEl.querySelectorAll('p, li, tr, h1, h2, h3, h4, h5, h6');
+        
+        window.grcHighlights = window.grcHighlights || {};
+        const fileKey = currentScenario.id + '_' + fileDef.id;
+        if (!window.grcHighlights[fileKey]) {
+            window.grcHighlights[fileKey] = [];
+        }
         
         blocks.forEach((el, index) => {
             el.classList.add('md-interactive-line');
             // Store the text content for validation
-            el.setAttribute('data-raw', el.innerText || el.textContent);
+            const rawText = el.innerText || el.textContent;
+            el.setAttribute('data-raw', rawText);
+            
+            // Restore previous highlighted state
+            if (window.grcHighlights[fileKey].includes(rawText)) {
+                el.classList.add('highlighted');
+            }
             
             el.addEventListener('click', (e) => {
                 e.stopPropagation();
-                el.classList.toggle('highlighted');
+                const isHighlighted = el.classList.toggle('highlighted');
+                
+                // Save state
+                if (isHighlighted) {
+                    if (!window.grcHighlights[fileKey].includes(rawText)) {
+                        window.grcHighlights[fileKey].push(rawText);
+                    }
+                } else {
+                    window.grcHighlights[fileKey] = window.grcHighlights[fileKey].filter(t => t !== rawText);
+                }
             });
         });
         
@@ -288,21 +322,45 @@ function renderMarkdown(mdText, container, fileDef, pdfBtn, submitBtn) {
         submitBtn.onclick = () => evaluateSubmission(fileDef);
     }
     
-    // Enable PDF export
     pdfBtn.classList.remove('hidden');
     pdfBtn.onclick = () => {
-        const element = document.createElement('div');
-        element.innerHTML = marked.parse(mdText);
-        element.className = 'prose prose-sm max-w-none bg-white text-black'; // ensure black text on white bg for PDF
-        
-        const opt = {
-            margin:       0.5,
-            filename:     fileDef.name.replace('.md', '.pdf'),
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2 },
-            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-        };
-        html2pdf().set(opt).from(element).save();
+        // Create hidden container
+        const printContainer = document.createElement('div');
+        printContainer.id = 'print-container';
+        printContainer.style.position = 'absolute';
+        printContainer.style.left = '-9999px';
+        printContainer.innerHTML = `
+            <div id="print-content" class="prose max-w-none text-black bg-white p-8">
+                ${marked.parse(mdText)}
+            </div>
+        `;
+        document.body.appendChild(printContainer);
+
+        // Gather all existing styles (including Tailwind injected styles)
+        const styleTags = Array.from(document.querySelectorAll('style'))
+            .map(s => s.innerText)
+            .join('\n');
+
+        // Append specific print media CSS for layout optimization
+        const customPrintStyle = `
+            ${styleTags}
+            @media print {
+                @page { margin: 0.5in; }
+                body { background: white !important; }
+                #print-content { padding: 0 !important; }
+            }
+        `;
+
+        printJS({
+            printable: 'print-content',
+            type: 'html',
+            documentTitle: fileDef.name.replace('.md', ''),
+            style: customPrintStyle, 
+            scanStyles: false, // We pass all styles manually in the 'style' property
+            onPrintDialogClose: () => {
+                document.body.removeChild(printContainer);
+            }
+        });
     };
 }
 
@@ -353,6 +411,15 @@ function evaluateSubmission(fileDef) {
     
     if (allFound && solutions.length > 0) {
         showToast('success', 'ACCESS GRANTED: Correct findings identified. Scenario Solved.');
+        
+        // Clear all highlights specifically for this scenario upon completion
+        if (window.grcHighlights) {
+            for (const key in window.grcHighlights) {
+                if (key.startsWith(currentScenario.id + '_')) {
+                    delete window.grcHighlights[key];
+                }
+            }
+        }
         
         const mainContainer = document.getElementById('view-scenario');
         mainContainer.innerHTML = `
