@@ -144,9 +144,7 @@ export async function renderScenario(scenarioId) {
                 return `
                   <div class="flex-1 flex flex-col items-center justify-end gap-1 h-full text-ink">
                     <span class="text-[10px] font-mono opacity-80">${count}</span>
-                    <div class="w-full opacity-80 border-t-2 border-${sev === 'critical' ? 'danger' : sev === 'high' ? 'warning' : 'cyan'}" style="height: ${Math.max(pct, 4)}%">
-                      <div class="w-full h-full ${SEV_COLORS[sev]} opacity-80"></div>
-                    </div>
+                    <div class="w-full ${SEV_COLORS[sev]} opacity-80 transition-all duration-300" style="height: ${pct}%"></div>
                     <span class="text-[10px] font-bold shrink-0 opacity-80">${sev === 'informational' ? 'INFO' : sev.slice(0,4).toUpperCase()}</span>
                   </div>
                 `;

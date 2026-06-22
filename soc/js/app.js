@@ -30,7 +30,7 @@ const app = {
   async handleRoute() {
     const path = window.location.pathname;
     
-    if (path === '/soc' || path === '/soc/') {
+    if (path === '/soc' || path === '/soc/' || path === '/soc/index.html') {
       window.history.replaceState({}, '', '/soc/practice');
       return this.handleRoute();
     }
