@@ -24,6 +24,7 @@ const appHandlers = {
         if (!dataLoaded) await fetchStaticData();
     },
     show404: () => {
+        document.getElementById('section-landing')?.classList.add('hidden');
         document.getElementById('section-practice')?.classList.add('hidden');
         document.getElementById('section-compete')?.classList.add('hidden');
         document.getElementById('section-404')?.classList.remove('hidden');
@@ -540,22 +541,36 @@ function setupListeners() {
 function updateNavStyles(activeTabId, activeSubnavId) {
     document.getElementById('tab-practice').className = 'text-gray-400 hover:text-ink hover:border-ink border-b-4 border-transparent pb-1 transition-colors duration-0';
     document.getElementById('tab-compete').className = 'text-gray-400 hover:text-ink hover:border-ink border-b-4 border-transparent pb-1 transition-colors duration-0';
-    document.getElementById(activeTabId).className = 'text-ink border-b-4 border-ink pb-1 font-bold';
+    
+    if (activeTabId) {
+        const tabEl = document.getElementById(activeTabId);
+        if (tabEl) tabEl.className = 'text-ink border-b-4 border-ink pb-1 font-bold';
+    }
 
     const subnavs = ['subnav-practice-events', 'subnav-practice-challenges', 'subnav-compete-events', 'subnav-compete-challenges'];
     subnavs.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.className = 'text-gray-400 hover:text-ink hover:border-ink border-b-4 border-transparent pb-3 transition-colors duration-0';
     });
-    const activeSub = document.getElementById(activeSubnavId);
-    if (activeSub) activeSub.className = 'text-ink border-b-4 border-ink pb-3 font-bold transition-colors duration-0';
+    
+    if (activeSubnavId) {
+        const activeSub = document.getElementById(activeSubnavId);
+        if (activeSub) activeSub.className = 'text-ink border-b-4 border-ink pb-3 font-bold transition-colors duration-0';
+    }
 }
 
 function switchTab(tab) {
     window.currentTab = tab;
-    document.getElementById('section-practice').classList.add('hidden');
-    document.getElementById('section-compete').classList.add('hidden');
-    document.getElementById(`section-${tab}`).classList.remove('hidden');
+    document.getElementById('section-practice')?.classList.add('hidden');
+    document.getElementById('section-compete')?.classList.add('hidden');
+    document.getElementById('section-landing')?.classList.add('hidden');
+
+    if (tab === 'landing') {
+        updateNavStyles(null, null);
+        document.getElementById('section-landing')?.classList.remove('hidden');
+    } else {
+        document.getElementById(`section-${tab}`)?.classList.remove('hidden');
+    }
 }
 
 function switchPracticeView(view) {
@@ -809,9 +824,9 @@ function renderCompeteCard(chal, solvedList, mode) {
     if (isSolved) pointsDisplay = 'SOLVED';
     else if (isArchived) pointsDisplay = 'EXPIRED';
 
-    let href = `/challenge/compete/${chal.id}`;
+    let href = `/ctf/challenge/compete/${chal.id}`;
     if (mode === 'compete-event') {
-        href = `/challenge/event/${window.activeEventId}/${chal.id}`;
+        href = `/ctf/challenge/event/${window.activeEventId}/${chal.id}`;
     }
 
     const safeName = DOMPurify.sanitize(chal.name || '');
@@ -838,8 +853,9 @@ function renderCompeteCard(chal, solvedList, mode) {
 
 async function openChallenge(id, mode) {
     window.currentMode = mode;
-    document.getElementById('section-practice').classList.add('hidden');
-    document.getElementById('section-compete').classList.add('hidden');
+    document.getElementById('section-landing')?.classList.add('hidden');
+    document.getElementById('section-practice')?.classList.add('hidden');
+    document.getElementById('section-compete')?.classList.add('hidden');
     document.getElementById('detail-view').classList.remove('hidden');
 
     // 1. GET THE STAT ELEMENTS AND RESET THEM
