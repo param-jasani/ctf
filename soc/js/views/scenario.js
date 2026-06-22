@@ -141,15 +141,15 @@ export async function renderScenario(scenarioId) {
               ${SEVERITIES.map(sev => {
                 const count = bySev[sev] || 0;
                 const pct = Math.round((count / maxSev) * 100);
-                return \`
+                return `
                   <div class="flex-1 flex flex-col items-center justify-end gap-1 h-full text-ink">
-                    <span class="text-[10px] font-mono opacity-80">\${count}</span>
-                    <div class="w-full opacity-80 border-t-2 border-\${sev === 'critical' ? 'danger' : sev === 'high' ? 'warning' : 'cyan'}" style="height: \${Math.max(pct, 4)}%">
-                      <div class="w-full h-full \${SEV_COLORS[sev]} opacity-80"></div>
+                    <span class="text-[10px] font-mono opacity-80">${count}</span>
+                    <div class="w-full opacity-80 border-t-2 border-${sev === 'critical' ? 'danger' : sev === 'high' ? 'warning' : 'cyan'}" style="height: ${Math.max(pct, 4)}%">
+                      <div class="w-full h-full ${SEV_COLORS[sev]} opacity-80"></div>
                     </div>
-                    <span class="text-[10px] font-bold shrink-0 opacity-80">\${sev === 'informational' ? 'INFO' : sev.slice(0,4).toUpperCase()}</span>
+                    <span class="text-[10px] font-bold shrink-0 opacity-80">${sev === 'informational' ? 'INFO' : sev.slice(0,4).toUpperCase()}</span>
                   </div>
-                \`;
+                `;
               }).join('')}
             </div>
           </div>
@@ -163,17 +163,17 @@ export async function renderScenario(scenarioId) {
             ${Object.entries(bySrc)
               .sort(([, a], [, b]) => b - a)
               .slice(0, 6)
-              .map(([src, count]) => \`
+              .map(([src, count]) => `
                 <div class="flex flex-col gap-1">
                   <div class="flex justify-between text-[10px] font-bold text-ink uppercase">
-                    <span class="truncate mr-2">\${src}</span>
-                    <span>\${count}</span>
+                    <span class="truncate mr-2">${src}</span>
+                    <span>${count}</span>
                   </div>
                   <div class="h-1 w-full bg-canvas border border-ink shadow-[inset_1px_1px_0_0_#e5e5e5]">
-                    <div class="h-full bg-cyan" style="width: \${Math.round((count / maxSrc) * 100)}%"></div>
+                    <div class="h-full bg-cyan" style="width: ${Math.round((count / maxSrc) * 100)}%"></div>
                   </div>
                 </div>
-              \`).join('')}
+              `).join('')}
           </div>
         </div>
       `;
