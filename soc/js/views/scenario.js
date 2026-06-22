@@ -101,56 +101,9 @@ export async function renderScenario(scenarioId) {
     const allAlerts = await listAlerts(scenarioId);
     const allSources = Array.from(new Set(allAlerts.alerts.map(a => a.source))).sort();
     
-    const maxSev = Math.max(...Object.values(summary.bySeverity), 1);
-    const maxSrc = Math.max(...Object.values(summary.bySource), 1);
-    
     const summaryHtml = `
       <section class="col-span-12 md:col-span-4 border-2 border-ink bg-white p-6 flex flex-col gap-8 overflow-y-auto shadow-[4px_4px_0_0_#0b0b0b]">
-        <div>
-          <h2 class="font-mono text-[10px] font-bold text-ink uppercase mb-4 flex items-center gap-2">
-            <span class="text-cyan">//</span> SUMMARY
-          </h2>
-          <div class="w-full h-[160px] border-2 border-ink relative bg-ink p-4 flex flex-col justify-end overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-[2px] bg-cyan/20 animate-[scan_8s_linear_infinite] z-10 pointer-events-none"></div>
-            <div class="flex items-end gap-2 h-full">
-              ${SEVERITIES.map(sev => {
-                const count = summary.bySeverity[sev] || 0;
-                const pct = Math.round((count / maxSev) * 100);
-                return `
-                  <div class="flex-1 flex flex-col items-center justify-end gap-1 h-full text-white">
-                    <span class="text-[10px] font-mono">${count}</span>
-                    <div class="w-full opacity-80 border-t-2 border-${sev === 'critical' ? 'danger' : sev === 'high' ? 'warning' : 'cyan'}" style="height: ${Math.max(pct, 4)}%">
-                      <div class="w-full h-full ${SEV_COLORS[sev]} opacity-80"></div>
-                    </div>
-                    <span class="text-[10px] font-bold shrink-0">${sev === 'informational' ? 'INFO' : sev.slice(0,4).toUpperCase()}</span>
-                  </div>
-                `;
-              }).join('')}
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <h3 class="font-mono text-[10px] font-bold text-ink mb-4 flex items-center gap-2 uppercase">
-            <span class="text-cyan">//</span> BY SOURCE
-          </h3>
-          <div class="space-y-3">
-            ${Object.entries(summary.bySource)
-              .sort(([, a], [, b]) => b - a)
-              .slice(0, 6)
-              .map(([src, count]) => `
-                <div class="flex flex-col gap-1">
-                  <div class="flex justify-between text-[10px] font-bold text-ink uppercase">
-                    <span class="truncate mr-2">${src}</span>
-                    <span>${count}</span>
-                  </div>
-                  <div class="h-1 w-full bg-canvas border border-ink">
-                    <div class="h-full bg-cyan" style="width: ${Math.round((count / maxSrc) * 100)}%"></div>
-                  </div>
-                </div>
-              `).join('')}
-          </div>
-        </div>
+        <div id="dynamic-charts-container" class="space-y-8"></div>
 
         <div class="mt-auto border-2 border-ink p-4 bg-canvas shadow-[inset_2px_2px_0_0_#e5e5e5]">
           <p class="font-mono text-xs text-ink leading-relaxed">
@@ -162,6 +115,69 @@ export async function renderScenario(scenarioId) {
         </div>
       </section>
     `;
+    
+    function renderDynamicCharts(streamedAlerts) {
+      const bySev = { critical: 0, high: 0, medium: 0, low: 0, informational: 0 };
+      const bySrc = {};
+      streamedAlerts.forEach(a => {
+        bySev[a.alert_severity] = (bySev[a.alert_severity] || 0) + 1;
+        bySrc[a.source] = (bySrc[a.source] || 0) + 1;
+      });
+      
+      const maxSev = Math.max(...Object.values(bySev), 1);
+      const maxSrc = Math.max(...Object.values(bySrc), 1);
+      
+      const chartsContainer = document.getElementById('dynamic-charts-container');
+      if (!chartsContainer) return;
+      
+      chartsContainer.innerHTML = `
+        <div>
+          <h2 class="font-mono text-[10px] font-bold text-ink uppercase mb-4 flex items-center gap-2">
+            <span class="text-cyan">//</span> SUMMARY
+          </h2>
+          <div class="w-full h-[160px] border-2 border-ink relative bg-canvas p-4 flex flex-col justify-end overflow-hidden shadow-[inset_2px_2px_0_0_#e5e5e5]">
+            <div class="absolute top-0 left-0 w-full h-[2px] bg-cyan/20 animate-[scan_8s_linear_infinite] z-10 pointer-events-none"></div>
+            <div class="flex items-end gap-2 h-full">
+              ${SEVERITIES.map(sev => {
+                const count = bySev[sev] || 0;
+                const pct = Math.round((count / maxSev) * 100);
+                return \`
+                  <div class="flex-1 flex flex-col items-center justify-end gap-1 h-full text-ink">
+                    <span class="text-[10px] font-mono opacity-80">\${count}</span>
+                    <div class="w-full opacity-80 border-t-2 border-\${sev === 'critical' ? 'danger' : sev === 'high' ? 'warning' : 'cyan'}" style="height: \${Math.max(pct, 4)}%">
+                      <div class="w-full h-full \${SEV_COLORS[sev]} opacity-80"></div>
+                    </div>
+                    <span class="text-[10px] font-bold shrink-0 opacity-80">\${sev === 'informational' ? 'INFO' : sev.slice(0,4).toUpperCase()}</span>
+                  </div>
+                \`;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="font-mono text-[10px] font-bold text-ink mb-4 flex items-center gap-2 uppercase">
+            <span class="text-cyan">//</span> BY SOURCE
+          </h3>
+          <div class="space-y-3">
+            ${Object.entries(bySrc)
+              .sort(([, a], [, b]) => b - a)
+              .slice(0, 6)
+              .map(([src, count]) => \`
+                <div class="flex flex-col gap-1">
+                  <div class="flex justify-between text-[10px] font-bold text-ink uppercase">
+                    <span class="truncate mr-2">\${src}</span>
+                    <span>\${count}</span>
+                  </div>
+                  <div class="h-1 w-full bg-canvas border border-ink shadow-[inset_1px_1px_0_0_#e5e5e5]">
+                    <div class="h-full bg-cyan" style="width: \${Math.round((count / maxSrc) * 100)}%"></div>
+                  </div>
+                </div>
+              \`).join('')}
+          </div>
+        </div>
+      `;
+    }
     
     const mainHtml = `
       <section class="col-span-12 md:col-span-8 flex flex-col bg-white border-2 border-ink shadow-[4px_4px_0_0_#0b0b0b] h-full overflow-hidden">
@@ -211,6 +227,9 @@ export async function renderScenario(scenarioId) {
       
       if (unsubscribeStream) unsubscribeStream();
       unsubscribeStream = subscribeToStream((count) => {
+        const streamedAlerts = allAlerts.alerts.filter(a => a._index < count);
+        renderDynamicCharts(streamedAlerts);
+        
         const displayAlerts = visibleAlerts.filter(a => a._index < count);
         const countEl = document.getElementById('alert-count');
         if (countEl) countEl.innerText = displayAlerts.length;
