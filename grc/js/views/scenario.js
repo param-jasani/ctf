@@ -81,6 +81,7 @@ function renderLayout() {
                 <div class="bg-canvas border-b-2 border-ink p-3 flex justify-between items-center">
                     <span id="viewer-title" class="font-mono text-sm font-bold uppercase tracking-widest">> Select a file</span>
                     <div id="viewer-actions" class="hidden flex gap-2">
+                        <button id="btn-download-raw" class="btn-secondary !text-[10px] !py-1 !px-2 hidden">Download File</button>
                         <button id="btn-export-pdf" class="btn-secondary !text-[10px] !py-1 !px-2 hidden">Export PDF</button>
                         <button id="btn-submit-findings" class="btn-primary !text-[10px] !py-1 !px-2 hidden">Submit Findings</button>
                     </div>
@@ -155,11 +156,14 @@ async function renderFileViewer(fileDef) {
     const contentEl = document.getElementById('viewer-content');
     const actionsEl = document.getElementById('viewer-actions');
     const pdfBtn = document.getElementById('btn-export-pdf');
+    const rawBtn = document.getElementById('btn-download-raw');
     const submitBtn = document.getElementById('btn-submit-findings');
     
     // Clear old state
     pdfBtn.classList.add('hidden');
     pdfBtn.onclick = null;
+    rawBtn.classList.add('hidden');
+    rawBtn.onclick = null;
     submitBtn.classList.add('hidden');
     submitBtn.onclick = null;
     
@@ -176,7 +180,42 @@ async function renderFileViewer(fileDef) {
     // Show Loading
     contentEl.innerHTML = `<div class="font-mono animate-pulse">Reading file block data...</div>`;
     
-    const content = await fetchFileContent(fileDef.path);
+    // Always allow generic download directly from the path to save memory
+    rawBtn.classList.remove('hidden');
+    rawBtn.onclick = () => {
+        const a = document.createElement('a');
+        a.href = fileDef.path;
+        a.download = fileDef.name;
+        a.target = '_blank';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    };
+
+    let content;
+    if (fileDef.type !== 'markdown') {
+        try {
+            content = await Promise.race([
+                fetchFileContent(fileDef.path),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), 3000))
+            ]);
+        } catch (e) {
+            if (e.message === 'TIMEOUT') {
+                contentEl.innerHTML = `
+                    <div class="absolute inset-0 flex flex-col items-center justify-center font-mono text-center px-4">
+                        <p class="text-danger font-bold uppercase tracking-widest mb-4">> ERROR: RENDER TIMEOUT</p>
+                        <p class="text-ink text-sm mb-6 max-w-sm">This file took too long to load and parse in the browser viewport. It may be too large.</p>
+                        <button class="btn-primary" onclick="document.getElementById('btn-download-raw').click()">Download File Instead</button>
+                    </div>
+                `;
+                return;
+            } else {
+                content = "Error loading file data.";
+            }
+        }
+    } else {
+        content = await fetchFileContent(fileDef.path);
+    }
     
     if (fileDef.type === 'csv') {
         renderCSV(content, contentEl);
@@ -246,7 +285,7 @@ function renderMarkdown(mdText, container, fileDef, pdfBtn, submitBtn) {
     pdfBtn.onclick = () => {
         const element = document.createElement('div');
         element.innerHTML = marked.parse(mdText);
-        element.className = 'prose p-8 bg-white text-black'; // ensure black text on white bg for PDF
+        element.className = 'prose prose-sm max-w-none bg-white text-black'; // ensure black text on white bg for PDF
         
         const opt = {
             margin:       0.5,

@@ -1,9 +1,9 @@
 # Employee Offboarding Policy
 
-**Document Number**: ISMS-POL-08
-**Version**: 2.1
-**Classification**: INTERNAL USE ONLY
-**Effective Date**: January 1, 2026
+* **Document Number**: ISMS-POL-08
+* **Version**: 2.1
+* **Classification**: INTERNAL USE ONLY
+* **Effective Date**: January 1, 2026
 
 ---
 

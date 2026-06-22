@@ -1,10 +1,10 @@
 # IT Access Control Policy
 
-**Document Number**: ISMS-POL-04
-**Version**: 1.2
-**Classification**: INTERNAL USE ONLY
-**Effective Date**: January 1, 2026
-**Last Review Date**: June 1, 2026
+* **Document Number**: ISMS-POL-04
+* **Version**: 1.2
+* **Classification**: INTERNAL USE ONLY
+* **Effective Date**: January 1, 2026
+* **Last Review Date**: June 1, 2026
 
 ---
 
