@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HaxNation — SOC Simulator</title>
+    <meta name="theme-color" content="#5ce1e6">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <link rel="icon" type="image/png" href="/favicons/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicons/favicon.svg" />
+    <link rel="shortcut icon" href="/favicons/favicon.ico" />
+    <script src="/js/aws-intercept.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        canvas: '#fafafa', ink: '#0b0b0b', card: '#ffffff',
+                        cyan: '#5ce1e6', danger: '#ff2a2a',
+                        success: '#00e676', warning: '#ffeb3b',
+                        // Map SOC-specific severity colors
+                        soc_critical: '#ff2a2a', // Red
+                        soc_high: '#f97316',     // Orange
+                        soc_medium: '#eab308',   // Yellow
+                        soc_low: '#3b82f6',      // Blue
+                        soc_info: '#9ca3af',     // Gray
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer components {
+            .btn-primary {
+                @apply font-mono uppercase tracking-widest font-bold bg-cyan text-ink border-2 border-ink px-6 py-3 shadow-[4px_4px_0_0_#0b0b0b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#0b0b0b] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all duration-75 focus:outline-none focus:ring-2 focus:ring-cyan focus:ring-offset-2;
+            }
+            .btn-danger {
+                @apply font-mono uppercase tracking-widest font-bold bg-danger text-white border-2 border-ink px-6 py-3 shadow-[4px_4px_0_0_#0b0b0b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#0b0b0b] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all duration-75 focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2;
+            }
+            .btn-secondary {
+                @apply font-mono text-xs font-bold uppercase tracking-widest bg-white text-ink border-2 border-ink px-4 py-2 hover:bg-ink hover:text-white transition-colors duration-0 shadow-[2px_2px_0_0_#0b0b0b] focus:outline-none focus:ring-2 focus:ring-ink focus:ring-offset-2;
+            }
+            .card {
+                @apply bg-white border-2 border-ink p-6 shadow-[6px_6px_0_0_#0b0b0b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0_0_#0b0b0b] transition-all duration-75;
+            }
+            .severity-stripe-critical { @apply border-l-8 border-soc_critical; }
+            .severity-stripe-high     { @apply border-l-8 border-soc_high; }
+            .severity-stripe-medium   { @apply border-l-8 border-soc_medium; }
+            .severity-stripe-low      { @apply border-l-8 border-soc_low; }
+            .severity-stripe-info     { @apply border-l-8 border-soc_info; }
+            
+            .block-cursor {
+                @apply inline-block align-middle ml-1;
+                width: 8px;
+                height: 1.1em;
+                background-color: theme('colors.cyan');
+                animation: blink 1s step-end infinite;
+            }
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-canvas text-ink font-sans min-h-screen antialiased selection:bg-cyan selection:text-ink">
+
+    <div class="fixed inset-0 pointer-events-none bg-[linear-gradient(to_right,#80808020_1px,transparent_1px),linear-gradient(to_bottom,#80808020_1px,transparent_1px)] bg-[size:32px_32px]"></div>
+
+    <nav class="sticky top-0 z-50 border-b-2 border-ink bg-white">
+        <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
+            <a href="/" data-nav class="flex items-center gap-3 group cursor-pointer block">
+                <div class="relative group/logo flex items-center gap-2">
+                    <span class="flex items-center bg-ink border-2 border-ink px-3 py-1 shadow-[2px_2px_0_0_#0b0b0b] group-hover:translate-x-[1px] group-hover:translate-y-[1px] group-hover:shadow-[1px_1px_0_0_#0b0b0b] transition-all duration-75 block">
+                        <img src="https://haxnation.org/images/logo_wt.png" alt="HAXNATION" class="h-8 w-auto block object-contain">
+                    </span>
+                    <span class="font-mono text-[10px] font-bold text-ink block sm:absolute sm:top-full sm:left-1/2 sm:-translate-x-1/2 sm:mt-2 sm:bg-ink sm:text-white sm:px-2 sm:py-1 sm:opacity-0 sm:group-hover/logo:opacity-100 sm:transition-opacity sm:pointer-events-none sm:whitespace-nowrap sm:z-50">MAIN_DASHBOARD</span>
+                </div>
+                <span class="hidden sm:inline font-mono text-[10px] font-bold uppercase tracking-widest text-ink border-2 border-ink px-1.5 py-0.5 bg-canvas">SOC_SIM</span>
+            </a>
+
+            <div class="hidden md:flex items-center gap-6 font-mono text-sm font-bold uppercase">
+                <a href="/soc/practice" data-nav id="nav-practice" class="text-ink border-b-4 border-ink pb-1 block">Practice</a>
+                <a href="/soc/compete" data-nav id="nav-compete" class="text-gray-400 hover:text-ink hover:border-ink border-b-4 border-transparent pb-1 transition-colors duration-0 block">Compete</a>
+            </div>
+
+            <div id="auth-section" class="flex items-center gap-3">
+                <button id="login-btn" class="hidden btn-danger !px-4 !py-2 !text-xs">Login</button>
+                <div id="user-info" class="hidden flex items-center gap-4">
+                    <div class="flex items-center gap-2 bg-white border-2 border-ink px-3 py-1 shadow-[2px_2px_0_0_#0b0b0b]">
+                        <div class="w-6 h-6 bg-cyan border-2 border-ink flex items-center justify-center">
+                            <span class="font-mono text-[10px] font-bold text-ink" id="user-avatar-initials">U</span>
+                        </div>
+                        <span id="user-name" class="hidden sm:inline font-mono text-xs font-bold text-ink uppercase"></span>
+                    </div>
+                    <button id="logout-btn" class="btn-secondary">Exit</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-6 py-10 relative z-10" id="main-content">
+        <!-- Views injected by app.js -->
+        <div id="view-loading" class="text-center py-20 hidden">
+            <h2 class="text-3xl font-black uppercase mb-4 animate-pulse">Initializing System...</h2>
+            <div class="font-mono text-sm text-ink opacity-70">Establishing uplink to operations center</div>
+        </div>
+        <div id="view-practice" class="hidden"></div>
+        <div id="view-compete" class="hidden"></div>
+        <div id="view-scenario" class="hidden"></div>
+        <div id="view-triage" class="hidden"></div>
+    </main>
+
+    <!-- Modal System -->
+    <div id="modal-container" class="hidden fixed inset-0 z-[100] bg-canvas/80 backdrop-blur-sm items-center justify-center p-4">
+        <div id="modal-content" class="bg-white border-4 border-ink p-8 shadow-[12px_12px_0_0_#0b0b0b] max-w-md w-full transform scale-95 opacity-0 transition-all duration-200">
+        </div>
+    </div>
+    
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[100] flex flex-col gap-3"></div>
+
+    <!-- Scripts -->
+    <script src="/js/auth.js"></script>
+    <script type="module" src="/soc/js/api.js"></script>
+    <script type="module" src="/soc/js/alertStream.js"></script>
+    <script type="module" src="/soc/js/app.js"></script>
+</body>
+</html>
