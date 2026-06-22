@@ -1,6 +1,6 @@
 import { getScenarioSummary, listAlerts } from '../api.js';
-import { initScenarioStream, subscribeToStream } from '../alertStream.js';
-import { getScenarioTriages } from '../triageStore.js';
+import { initScenarioStream, subscribeToStream, resetScenarioStream } from '../alertStream.js';
+import { getScenarioTriages, clearScenarioTriages } from '../triageStore.js';
 
 const SEVERITIES = ['critical', 'high', 'medium', 'low', 'informational'];
 const SEV_COLORS = {
@@ -27,6 +27,31 @@ function renderDashboard(triages) {
   const bestTtr = validTimes.length ? Math.min(...validTimes) : 0;
   const worstTtr = validTimes.length ? Math.max(...validTimes) : 0;
 
+  const maxTtr = Math.max(...validTimes, 1);
+  const ttrGraphHtml = validTimes.length > 0 ? `
+    <div class="mt-6">
+      <h3 class="font-mono text-[10px] font-bold text-ink mb-4 flex items-center gap-2 uppercase">
+        <span class="text-cyan">//</span> RESPONSE TIME (TTR) BY ALERT
+      </h3>
+      <div class="flex items-end gap-2 h-[120px] bg-canvas border-2 border-ink p-4 shadow-[inset_2px_2px_0_0_#e5e5e5]">
+        ${triages.map(t => {
+          const ttr = t.timeToRespondMs || 0;
+          const pct = Math.round((ttr / maxTtr) * 100) || 1;
+          const color = t.isCorrect ? 'bg-cyan' : 'bg-danger';
+          return `
+            <div class="flex-1 flex flex-col items-center justify-end gap-1 h-full group relative">
+              <div class="absolute -top-8 bg-ink text-white px-2 py-1 text-[8px] font-mono opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none shadow-[2px_2px_0_0_#5ce1e6]">
+                #${t.alertIndex}: ${formatMs(ttr)}
+              </div>
+              <div class="w-full ${color} opacity-80 hover:opacity-100 transition-all duration-300 border border-ink/20" style="height: ${pct}%"></div>
+              <span class="text-[8px] font-mono opacity-80 truncate w-full text-center">#${t.alertIndex}</span>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  ` : '';
+
   return `
     <div class="p-6 bg-white border-b-2 border-ink space-y-6 shrink-0 shadow-[4px_4px_0_0_#0b0b0b] mb-6">
       <h2 class="font-mono text-[10px] font-bold uppercase text-ink flex items-center gap-2">
@@ -34,12 +59,10 @@ function renderDashboard(triages) {
         // SCENARIO COMPLETE: POST-INCIDENT REPORT
       </h2>
       
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="grid grid-cols-2 gap-4">
         ${[
           ['AVG ACCURACY', `${avgAccuracy}%`],
-          ['MTTR', formatMs(mttr)],
-          ['BEST TTR', formatMs(bestTtr)],
-          ['WORST TTR', formatMs(worstTtr)],
+          ['AVG TTR', formatMs(mttr)],
         ].map(([k, v]) => `
           <div class="p-4 border-2 border-ink bg-canvas flex flex-col items-center justify-center gap-1 shadow-[2px_2px_0_0_#0b0b0b]">
             <span class="text-[10px] text-ink opacity-80 font-bold uppercase">${k}</span>
@@ -47,6 +70,8 @@ function renderDashboard(triages) {
           </div>
         `).join('')}
       </div>
+      ${ttrGraphHtml}
+      <button id="btn-replay" class="btn-primary w-full mt-4 !py-3 !text-sm flex justify-center uppercase tracking-widest font-bold">REPLAY SCENARIO</button>
     </div>
   `;
 }
@@ -106,12 +131,13 @@ export async function renderScenario(scenarioId) {
         <div id="dynamic-charts-container" class="space-y-8"></div>
 
         <div class="mt-auto border-2 border-ink p-4 bg-canvas shadow-[inset_2px_2px_0_0_#e5e5e5]">
-          <p class="font-mono text-xs text-ink leading-relaxed">
+          <p class="font-mono text-xs text-ink leading-relaxed mb-4">
             <span class="font-bold">&gt; SCENARIO_STATUS:</span> ACTIVE<br />
             <span class="font-bold">&gt; TOTAL_ALERTS:</span> ${summary.totalAlerts}<br />
             <span class="font-bold">&gt; TITLE:</span> ${summary.title}
             <span class="block-cursor"></span>
           </p>
+          <button id="btn-restart" class="btn-danger w-full !px-2 !py-2 !text-[10px] uppercase font-bold tracking-widest">RESTART SCENARIO</button>
         </div>
       </section>
     `;
@@ -211,6 +237,7 @@ export async function renderScenario(scenarioId) {
     
     const updateTable = async () => {
       if (isDone) {
+        renderDynamicCharts(allAlerts.alerts);
         document.getElementById('alerts-table-container').innerHTML = `
           <div class="flex flex-col items-center justify-center h-64 text-ink opacity-80">
             <span class="text-4xl mb-2">✅</span>
@@ -243,7 +270,8 @@ export async function renderScenario(scenarioId) {
         }
         
         document.getElementById('alerts-table-container').innerHTML = `
-          <table class="w-full border-collapse text-left bg-white">
+          <div class="overflow-x-auto">
+            <table class="w-full min-w-[900px] border-collapse text-left bg-white">
             <thead class="sticky top-0 bg-canvas z-10 border-b-2 border-ink shadow-sm">
               <tr>
                 ${['_TIME', 'ALERT_NAME', 'SEV', 'SOURCE', 'HOST', ''].map(h => 
@@ -252,7 +280,7 @@ export async function renderScenario(scenarioId) {
               </tr>
             </thead>
             <tbody class="divide-y-2 divide-ink/20">
-              ${displayAlerts.map(alert => `
+              ${[...displayAlerts].reverse().map(alert => `
                 <tr class="hover:bg-cyan/10 transition-colors group cursor-pointer" onclick="window.navigateSoc('/soc/scenarios/${scenarioId}/alerts/${alert._index}')">
                   <td class="px-4 py-4 font-mono text-xs text-ink opacity-80 whitespace-nowrap">
                     ${alert._time.split('T')[1]?.replace('Z', '') || alert._time}
@@ -280,7 +308,8 @@ export async function renderScenario(scenarioId) {
                 </tr>
               `).join('')}
             </tbody>
-          </table>
+            </table>
+          </div>
         `;
       });
     };
@@ -295,6 +324,28 @@ export async function renderScenario(scenarioId) {
     });
     
     await updateTable();
+
+    const restartBtn = document.getElementById('btn-restart');
+    if (restartBtn) {
+      restartBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to restart the scenario? All progress will be lost.')) {
+          clearScenarioTriages(scenarioId);
+          resetScenarioStream(scenarioId);
+          window.navigateSoc(`/soc/scenarios/${scenarioId}`);
+        }
+      });
+    }
+
+    const replayBtn = document.getElementById('btn-replay');
+    if (replayBtn) {
+      replayBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to replay the scenario? All past triages will be cleared.')) {
+          clearScenarioTriages(scenarioId);
+          resetScenarioStream(scenarioId);
+          window.navigateSoc(`/soc/scenarios/${scenarioId}`);
+        }
+      });
+    }
     
   } catch (err) {
     const errEl = document.getElementById('scenario-error');

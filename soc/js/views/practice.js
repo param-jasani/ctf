@@ -91,7 +91,7 @@ export async function renderPractice() {
         <div class="absolute left-0 top-0 w-2 h-full ${stripeClass}"></div>
         <div class="pl-2">
           <div class="flex justify-between items-start mb-4">
-            <h3 class="font-black text-xl uppercase tracking-tighter text-ink transition-colors group-hover:text-cyan mr-2 glitch-title" data-text="${titleText}">
+            <h3 class="font-black text-xl uppercase tracking-tighter text-ink transition-colors group-hover:text-[#008b8b] mr-2 glitch-title" data-text="${titleText}">
               ${titleText}
             </h3>
             <span class="font-mono text-[10px] font-bold uppercase tracking-widest border-2 border-ink px-2 py-1 ${badgeClass}">
