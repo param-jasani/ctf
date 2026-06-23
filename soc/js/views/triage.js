@@ -171,7 +171,7 @@ function updateTriageUI() {
         <div class="space-y-[1px] bg-ink border-2 border-ink">
           <div class="grid grid-cols-3 bg-white p-3 border-b-2 border-ink">
             <span class="font-mono text-[10px] text-ink font-bold opacity-70">VERDICT</span>
-            <span class="col-span-2 font-mono text-xs font-bold text-ink">${existing.verdict.toUpperCase()}</span>
+            <span class="col-span-2 font-mono text-xs font-bold text-ink">${String(existing.verdict || 'UNKNOWN').toUpperCase()}</span>
           </div>
           <div class="grid grid-cols-3 bg-white p-3 border-b-2 border-ink">
             <span class="font-mono text-[10px] text-ink font-bold opacity-70">SUBMITTED</span>
@@ -228,7 +228,7 @@ function updateTriageUI() {
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-1">
             <span class="font-mono text-[10px] font-bold uppercase border-2 border-ink ${badgeColor} text-white px-1 shadow-[2px_2px_0_0_#0b0b0b]">
-              ${currentAlert.alert_severity === 'informational' ? 'INFO' : currentAlert.alert_severity.toUpperCase()}
+              ${currentAlert.alert_severity === 'informational' ? 'INFO' : String(currentAlert.alert_severity || 'UNKNOWN').toUpperCase()}
             </span>
             <span class="font-mono text-[10px] text-ink opacity-70 truncate">${currentAlert._time}</span>
           </div>

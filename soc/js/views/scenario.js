@@ -220,7 +220,7 @@ export async function renderScenario(scenarioId) {
             <select id="filter-src" class="input !py-1 !text-[10px]">
               <option value="">SOURCE: ALL</option>
               ${allSources.map(s => 
-                `<option value="${s}" ${currentFilters.source === s ? 'selected' : ''}>${s.toUpperCase()}</option>`
+                `<option value="${s}" ${currentFilters.source === s ? 'selected' : ''}>${String(s || 'UNKNOWN').toUpperCase()}</option>`
               ).join('')}
             </select>
           </div>
@@ -290,7 +290,7 @@ export async function renderScenario(scenarioId) {
                   </td>
                   <td class="px-4 py-4">
                     <span class="font-mono text-[10px] font-bold text-white px-2 py-1 ${SEV_COLORS[alert.alert_severity] || 'bg-soc_info'} shadow-[2px_2px_0_0_#0b0b0b]">
-                      ${alert.alert_severity === 'informational' ? 'INFO' : alert.alert_severity.toUpperCase()}
+                      ${alert.alert_severity === 'informational' ? 'INFO' : String(alert.alert_severity || 'UNKNOWN').toUpperCase()}
                     </span>
                   </td>
                   <td class="px-4 py-4 font-mono text-xs text-ink truncate max-w-[150px]">

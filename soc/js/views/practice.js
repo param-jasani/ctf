@@ -77,7 +77,7 @@ export async function renderPractice() {
       card.className = 'card relative cursor-pointer group flex flex-col justify-between overflow-hidden';
       card.onclick = () => window.navigateSoc(`/soc/scenarios/${scenario.id}`);
       
-      const titleText = `> ${scenario.title.toUpperCase()}`;
+      const titleText = `> ${String(scenario.title || 'UNKNOWN').toUpperCase()}`;
       
       let badgeClass = 'bg-cyan';
       if (scenario.difficulty === 'intermediate') badgeClass = 'bg-warning';

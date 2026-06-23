@@ -24,7 +24,7 @@ export async function listScenarios() {
     difficulty: c.difficulty,
     tags: c.category || [],
     description: c.description || 'Access terminal to view intelligence briefing.',
-    alertCount: 'MULTIPLE'
+    alertCount: c.alert_count !== undefined ? c.alert_count : 'MULTIPLE'
   }));
   return { scenarios };
 }
@@ -37,7 +37,7 @@ export async function getScenario(id) {
     description: data.description,
     difficulty: data.difficulty,
     tags: data.category || [],
-    alertCount: 'MULTIPLE',
+    alertCount: data.alert_count !== undefined ? data.alert_count : 'MULTIPLE',
     ...data
   };
 }
@@ -75,9 +75,30 @@ export async function getScenarioSummary(id) {
   };
 }
 
+function mapAlert(raw, index) {
+  return {
+    ...raw,
+    alert_severity: raw.alert?.severity || raw.event?.severity || raw.alert_severity || 'informational',
+    _time: raw.timestamp || raw._time || 'Unknown',
+    alert_name: raw.alert?.title || raw.rule?.name || raw.alert_name || 'Unknown Alert',
+    source: raw.source?.product || (typeof raw.source === 'string' ? raw.source : 'Unknown'),
+    host: raw.observer?.hostname || raw.observer?.name || (typeof raw.host === 'string' ? raw.host : 'Unknown'),
+    _index: index
+  };
+}
+
 export async function listAlerts(id, filters = {}) {
   await fetchAndCacheAlerts(id);
-  return { alerts: cachedAlerts[id] };
+  let mapped = (cachedAlerts[id] || []).map(mapAlert);
+  
+  if (filters.severity) {
+    mapped = mapped.filter(a => (a.alert_severity || '').toLowerCase() === filters.severity.toLowerCase());
+  }
+  if (filters.source) {
+    mapped = mapped.filter(a => a.source === filters.source);
+  }
+  
+  return { alerts: mapped };
 }
 
 export async function getAlert(scenarioId, index) {
@@ -86,21 +107,7 @@ export async function getAlert(scenarioId, index) {
   if (!alerts || index >= alerts.length) {
     throw new ApiError('Alert not found', 404);
   }
-  
-  const raw = alerts[index];
-  
-  // Map ECS to the flat schema expected by triage.js
-  const mapped = {
-    ...raw,
-    alert_severity: raw.alert?.severity || raw.event?.severity || raw.alert_severity || 'informational',
-    _time: raw.timestamp || raw._time || 'Unknown',
-    alert_name: raw.alert?.title || raw.rule?.name || raw.alert_name || 'Unknown Alert',
-    source: raw.source?.product || raw.source || 'Unknown',
-    host: raw.observer?.name || raw.host || 'Unknown',
-    _index: index
-  };
-  
-  return mapped;
+  return mapAlert(alerts[index], index);
 }
 
 export async function submitTriage(scenarioId, index, body) {
