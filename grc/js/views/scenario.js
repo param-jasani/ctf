@@ -81,9 +81,9 @@ function renderLayout() {
 
             <!-- Main Viewer -->
             <div class="flex-grow bg-white border-2 border-ink shadow-[6px_6px_0_0_#0b0b0b] min-h-[500px] flex flex-col">
-                <div class="bg-canvas border-b-2 border-ink p-3 flex justify-between items-center">
+                <div class="bg-canvas border-b-2 border-ink p-3 flex justify-between items-center sticky top-16 z-30">
                     <span id="viewer-title" class="font-mono text-sm font-bold uppercase tracking-widest">> Select a file</span>
-                    <div id="viewer-actions" class="hidden flex gap-2">
+                    <div id="viewer-actions" class="hidden flex flex-wrap gap-2 justify-end">
                         <button id="btn-download-raw" class="btn-secondary !text-xs !py-1 !px-2 hidden">Download File</button>
                         <button id="btn-export-pdf" class="btn-secondary !text-xs !py-1 !px-2 hidden">Export PDF</button>
                         <button id="btn-submit-findings" class="btn-primary !text-xs !py-1 !px-2 hidden">Submit Findings</button>
@@ -238,7 +238,7 @@ function renderCSV(csvText, container) {
         return;
     }
     
-    let html = '<table class="w-full text-left font-sans text-sm border-collapse border-2 border-ink">';
+    let html = '<div class="overflow-x-auto w-full"><table class="w-full text-left font-sans text-sm border-collapse border-2 border-ink">';
     lines.forEach((line, i) => {
         const cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, ''));
         html += '<tr class="border-b border-ink">';
@@ -251,7 +251,7 @@ function renderCSV(csvText, container) {
         });
         html += '</tr>';
     });
-    html += '</table>';
+    html += '</table></div>';
     
     container.innerHTML = html;
 }
@@ -267,7 +267,7 @@ function renderMarkdown(mdText, container, fileDef, pdfBtn, submitBtn) {
         
         let bannerHtml = `
             <div class="mb-8 p-4 border-2 border-ink bg-warning shadow-[4px_4px_0_0_#0b0b0b]">
-                <div class="flex justify-between items-start gap-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
                         <p class="font-mono text-sm font-bold uppercase tracking-widest">> INTERACTIVE AUDIT MODE ENABLED</p>
                         <p class="font-sans text-ink font-semibold mt-1">Please review the document below carefully. To log a policy violation or finding, simply click directly on the specific sentence, list item, or table row to highlight it. You must highlight all relevant findings before submitting.</p>
@@ -459,7 +459,7 @@ function evaluateSubmission(fileDef) {
         mainContainer.innerHTML = `
             <div class="text-center py-10 sm:py-20 max-w-2xl mx-auto">
                 <p class="font-mono text-xs font-bold uppercase tracking-widest text-ink mb-4 bg-success inline-block px-3 py-1 border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">SYS // AUDIT COMPLETE</p>
-                <h1 class="text-5xl sm:text-6xl font-extrabold text-ink uppercase tracking-tighter mb-8 leading-none">Operation Successful</h1>
+                <h1 class="text-4xl sm:text-6xl font-extrabold text-ink uppercase tracking-tighter mb-8 leading-none">Operation Successful</h1>
                 
                 <div class="bg-white border-4 border-ink p-6 sm:p-10 shadow-[8px_8px_0_0_#0b0b0b] mb-10 text-left">
                     <h2 class="text-2xl font-extrabold uppercase tracking-tighter mb-6 text-ink border-b-4 border-ink pb-2">> Audit Report</h2>

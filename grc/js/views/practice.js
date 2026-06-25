@@ -7,7 +7,7 @@ export async function renderPractice() {
     container.innerHTML = `
         <div class="mb-10">
             <p class="font-mono text-xs font-bold uppercase tracking-widest text-ink mb-2 bg-cyan inline-block px-2 border-2 border-ink">SYS // TRAINING GROUNDS</p>
-            <h1 class="text-5xl sm:text-7xl font-extrabold text-ink uppercase tracking-tighter leading-none border-b-4 border-ink pb-4">
+            <h1 class="text-4xl sm:text-7xl font-extrabold text-ink uppercase tracking-tighter leading-none border-b-4 border-ink pb-4">
                 Practice Arena<span class="inline-block w-4 h-[0.8em] bg-cyan animate-pulse align-middle ml-2 border-2 border-ink"></span>
             </h1>
         </div>
@@ -46,7 +46,7 @@ export async function renderPractice() {
     container.innerHTML = `
         <div class="mb-10">
             <p class="font-mono text-xs font-bold uppercase tracking-widest text-ink mb-2 bg-cyan inline-block px-2 border-2 border-ink">SYS // TRAINING GROUNDS</p>
-            <h1 class="text-5xl sm:text-7xl font-extrabold text-ink uppercase tracking-tighter leading-none border-b-4 border-ink pb-4">
+            <h1 class="text-4xl sm:text-7xl font-extrabold text-ink uppercase tracking-tighter leading-none border-b-4 border-ink pb-4">
                 Practice Arena<span class="inline-block w-4 h-[0.8em] bg-cyan animate-pulse align-middle ml-2 border-2 border-ink"></span>
             </h1>
         </div>
