@@ -13,7 +13,8 @@
           "name": "Data_Classification_Policy_v1.md",
           "type": "markdown",
           "path": "/grc/scenarios/scenario-3/policy.md",
-          "interactive": false
+          "interactive": true,
+          "solutionTexts": ["Any dataset containing mixed classifications must be labeled at the **highest** level of sensitivity present in the dataset."]
         }
       ]
     },

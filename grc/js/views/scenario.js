@@ -38,12 +38,18 @@ function renderLayout() {
             <button onclick="window.navigateGrc('/grc/practice')" class="btn-secondary mb-4 shadow-[2px_2px_0_0_#0b0b0b]">
                 [←] Back to Arena
             </button>
-            <div class="flex justify-between items-end border-b-4 border-ink pb-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b-4 border-ink pb-4">
                 <div>
                     <p class="font-mono text-xs font-bold uppercase tracking-widest text-ink mb-2 bg-cyan inline-block px-2 border-2 border-ink">SYS // AUDIT_MODE</p>
                     <h1 class="text-4xl sm:text-5xl font-extrabold text-ink uppercase tracking-tighter leading-none">
                         ${currentScenario.title}
                     </h1>
+                </div>
+                <div class="text-left sm:text-right w-full sm:w-auto">
+                    <p class="font-mono text-xs font-bold uppercase tracking-widest text-ink mb-1">> Global Findings</p>
+                    <div class="font-mono font-bold text-xl bg-warning border-2 border-ink px-4 py-1 shadow-[2px_2px_0_0_#0b0b0b] inline-block" id="global-progress">
+                        - / -
+                    </div>
                 </div>
             </div>
             <div class="mt-4 p-4 bg-white border-2 border-ink shadow-[4px_4px_0_0_#0b0b0b]">
@@ -129,7 +135,51 @@ function renderLayout() {
     };
 
     renderFileList();
+    window.updateProgress();
 }
+
+window.updateProgress = function() {
+    const progressEl = document.getElementById('global-progress');
+    if (!progressEl) return;
+    
+    let totalRequired = 0;
+    let totalFound = 0;
+    
+    window.grcHighlights = JSON.parse(localStorage.getItem('grcHighlights') || '{}');
+    
+    currentScenario.departments.forEach(dept => {
+        if (dept.files) {
+            dept.files.forEach(f => {
+                if (f.interactive && f.solutionTexts) {
+                    totalRequired += f.solutionTexts.length;
+                    const fileKey = currentScenario.id + '_' + f.id;
+                    const highlights = window.grcHighlights[fileKey] || [];
+                    
+                    f.solutionTexts.forEach(sol => {
+                        let found = false;
+                        highlights.forEach(h => {
+                            if (h.includes(sol)) found = true;
+                        });
+                        if (found) totalFound++;
+                    });
+                }
+            });
+        }
+    });
+    
+    if (totalRequired === 0) {
+        progressEl.innerText = '- / -';
+    } else {
+        progressEl.innerText = `${totalFound} / ${totalRequired}`;
+        if (totalFound === totalRequired) {
+            progressEl.classList.remove('bg-warning');
+            progressEl.classList.add('bg-success');
+        } else {
+            progressEl.classList.remove('bg-success');
+            progressEl.classList.add('bg-warning');
+        }
+    }
+};
 
 function renderFileList() {
     const listContainer = document.getElementById('file-list');
@@ -283,6 +333,7 @@ function renderMarkdown(mdText, container, fileDef, pdfBtn, submitBtn) {
             if (confirm("Are you sure you want to clear all markings across all documents?")) {
                 window.grcHighlights = {};
                 localStorage.setItem('grcHighlights', JSON.stringify(window.grcHighlights));
+                window.updateProgress();
                 renderFileViewer(fileDef); // Re-render to drop highlighted classes
                 showToast('success', 'All markings cleared.');
             }
@@ -327,6 +378,7 @@ function renderMarkdown(mdText, container, fileDef, pdfBtn, submitBtn) {
                     window.grcHighlights[fileKey] = window.grcHighlights[fileKey].filter(t => t !== rawText);
                 }
                 localStorage.setItem('grcHighlights', JSON.stringify(window.grcHighlights));
+                window.updateProgress();
             };
 
             el.addEventListener('click', toggleHighlight);
@@ -340,7 +392,8 @@ function renderMarkdown(mdText, container, fileDef, pdfBtn, submitBtn) {
         
         // Show Submit Button
         submitBtn.classList.remove('hidden');
-        submitBtn.onclick = () => evaluateSubmission(fileDef);
+        submitBtn.onclick = () => evaluateSubmission();
+        window.updateProgress();
     }
     
     pdfBtn.classList.remove('hidden');
@@ -385,51 +438,53 @@ function renderMarkdown(mdText, container, fileDef, pdfBtn, submitBtn) {
     };
 }
 
-function evaluateSubmission(fileDef) {
-    const container = document.getElementById('interactive-md-container');
-    if (!container) return;
+function evaluateSubmission() {
+    window.grcHighlights = JSON.parse(localStorage.getItem('grcHighlights') || '{}');
     
-    const highlightedEls = container.querySelectorAll('.md-interactive-line.highlighted');
-    if (highlightedEls.length === 0) {
-        showToast('error', 'No findings selected. Please highlight the relevant text.');
-        return;
-    }
-    
-    const solutions = fileDef.solutionTexts || [];
     let allFound = true;
     let hasFalsePositives = false;
     let missingFindingsCount = 0;
     let extraneousLinesCount = 0;
+    let totalSolutions = 0;
     
-    // Check if every solution text is present in at least one highlighted line
-    for (const sol of solutions) {
-        let found = false;
-        highlightedEls.forEach(el => {
-            if (el.getAttribute('data-raw').includes(sol)) {
-                found = true;
-            }
-        });
-        if (!found) {
-            allFound = false;
-            missingFindingsCount++;
-        }
-    }
-    
-    // Check for false positives: highlighting anything that isn't a solution
-    highlightedEls.forEach(el => {
-        let matchesASolution = false;
-        const raw = el.getAttribute('data-raw');
-        for (const sol of solutions) {
-            if (raw.includes(sol)) {
-                matchesASolution = true;
-                break;
-            }
-        }
-        if (!matchesASolution) {
-            hasFalsePositives = true;
-            extraneousLinesCount++;
+    currentScenario.departments.forEach(dept => {
+        if (dept.files) {
+            dept.files.forEach(f => {
+                if (f.interactive && f.solutionTexts) {
+                    totalSolutions += f.solutionTexts.length;
+                    const fileKey = currentScenario.id + '_' + f.id;
+                    const highlights = window.grcHighlights[fileKey] || [];
+                    
+                    f.solutionTexts.forEach(sol => {
+                        let found = false;
+                        highlights.forEach(h => {
+                            if (h.includes(sol)) found = true;
+                        });
+                        if (!found) {
+                            allFound = false;
+                            missingFindingsCount++;
+                        }
+                    });
+                    
+                    highlights.forEach(h => {
+                        let matchesASolution = false;
+                        f.solutionTexts.forEach(sol => {
+                            if (h.includes(sol)) matchesASolution = true;
+                        });
+                        if (!matchesASolution) {
+                            hasFalsePositives = true;
+                            extraneousLinesCount++;
+                        }
+                    });
+                }
+            });
         }
     });
+    
+    if (totalSolutions === 0) {
+        showToast('error', 'No expected findings in this scenario. Submit not required.');
+        return;
+    }
     
     if (hasFalsePositives || !allFound) {
         let msgs = [];
@@ -439,7 +494,7 @@ function evaluateSubmission(fileDef) {
         return;
     }
     
-    if (allFound && solutions.length > 0) {
+    if (allFound && totalSolutions > 0) {
         showToast('success', 'ACCESS GRANTED: Correct findings identified. Scenario Solved.');
         
         // Clear all highlights specifically for this scenario upon completion
@@ -465,7 +520,7 @@ function evaluateSubmission(fileDef) {
                     <h2 class="text-2xl font-extrabold uppercase tracking-tighter mb-6 text-ink border-b-4 border-ink pb-2">> Audit Report</h2>
                     <ul class="font-mono text-sm space-y-4 mb-8">
                         <li class="flex justify-between border-b border-ink border-dashed pb-2"><span>Target:</span> <span class="font-bold text-right">${currentScenario.title}</span></li>
-                        <li class="flex justify-between border-b border-ink border-dashed pb-2"><span>Findings Identified:</span> <span class="font-bold">${solutions.length}</span></li>
+                        <li class="flex justify-between border-b border-ink border-dashed pb-2"><span>Findings Identified:</span> <span class="font-bold">${totalSolutions}</span></li>
                         <li class="flex justify-between border-b border-ink border-dashed pb-2"><span>Status:</span> <span class="text-success font-bold">COMPLIANT</span></li>
                     </ul>
                     <p class="font-sans text-ink leading-relaxed font-semibold">All necessary policy violations have been successfully flagged and logged for remediation. The network is now secure.</p>
