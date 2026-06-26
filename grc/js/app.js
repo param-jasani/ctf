@@ -1,5 +1,6 @@
 import { renderPractice } from './views/practice.js';
 import { renderScenario } from './views/scenario.js';
+import { renderCompete } from './views/compete.js';
 
 const app = {
   currentView: null,
@@ -14,14 +15,17 @@ const app = {
       el.classList.add('text-gray-400', 'border-transparent');
     });
     
-    if (id === 'view-practice' || id === 'view-scenario') {
+    if (id === 'view-practice') {
       const nav = document.getElementById('nav-practice');
       if (nav) {
           nav.classList.add('text-ink', 'border-ink');
           nav.classList.remove('text-gray-400', 'border-transparent');
       }
-    } else if (id === 'view-compete') {
-      const nav = document.getElementById('nav-compete');
+    } else if (id === 'view-compete' || id === 'view-scenario') {
+      // Determine which nav to highlight based on the current path
+      const isCompete = window.location.pathname.startsWith('/grc/compete');
+      const navId = isCompete ? 'nav-compete' : 'nav-practice';
+      const nav = document.getElementById(navId);
       if (nav) {
           nav.classList.add('text-ink', 'border-ink');
           nav.classList.remove('text-gray-400', 'border-transparent');
@@ -42,11 +46,17 @@ const app = {
       return this.handleRoute();
     }
     
-    if (path.startsWith('/grc/practice')) {
+    if (path.match(/^\/grc\/compete\/scenarios\/[^\/]+$/)) {
+      const parts = path.split('/');
+      const scenarioId = parts[4];
+      this.showView('view-scenario');
+      await renderScenario(scenarioId, true);
+    } else if (path.startsWith('/grc/practice')) {
       this.showView('view-practice');
       await renderPractice();
     } else if (path.startsWith('/grc/compete')) {
       this.showView('view-compete');
+      await renderCompete();
     } else if (path.match(/^\/grc\/scenarios\/[^\/]+$/)) {
       const parts = path.split('/');
       const scenarioId = parts[3];

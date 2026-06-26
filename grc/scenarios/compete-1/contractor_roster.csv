@@ -1,0 +1,9 @@
+Contractor_ID,Full_Name,Department,Contract_Start,Contract_End,Clearance_Level,Status
+C-101,Sarah Chen,Engineering,2025-08-01,2026-12-31,Level 3,Active
+C-102,Marco Rivera,Finance,2025-03-15,2026-06-01,Level 2,Terminated
+C-103,James Okafor,Engineering,2025-11-01,2026-09-30,Level 1,Active
+C-104,Yuki Nakamura,IT Security,2025-06-01,2026-08-31,Level 3,Active
+C-105,Priya Sharma,Marketing,2026-01-10,2026-07-31,Level 1,Active
+C-106,David Kim,Finance,2025-09-01,2026-07-31,Level 3,Active
+C-107,Anna Petrov,Engineering,2025-04-20,2026-06-15,Level 2,Terminated
+C-108,Luis Torres,IT Security,2026-02-01,2026-12-31,Level 2,Active

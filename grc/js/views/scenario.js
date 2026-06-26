@@ -3,8 +3,10 @@ import { fetchScenario, fetchFileContent } from '../api.js';
 let currentScenario = null;
 let currentDeptId = null;
 let currentFileId = null;
+let isCompeteMode = false;
 
-export async function renderScenario(id) {
+export async function renderScenario(id, competeMode = false) {
+    isCompeteMode = competeMode;
     const container = document.getElementById('view-scenario');
     container.innerHTML = `<div class="text-center py-20 animate-pulse font-mono uppercase tracking-widest">> Loading Scenario Data...</div>`;
 
@@ -33,22 +35,29 @@ function renderLayout() {
     const container = document.getElementById('view-scenario');
     
     // Header
+    const backUrl = isCompeteMode ? '/grc/compete' : '/grc/practice';
+    const badgeText = isCompeteMode ? 'SYS // LIVE_COMPETITION' : 'SYS // AUDIT_MODE';
+    const badgeBg = isCompeteMode ? 'bg-danger' : 'bg-cyan';
+    const progressLabel = isCompeteMode ? '> Server Verified' : '> Global Findings';
+    const progressBg = isCompeteMode ? 'bg-danger' : 'bg-warning';
+    const progressDefault = isCompeteMode ? '? / ?' : '- / -';
+
     let html = `
         <div class="mb-8">
-            <button onclick="window.navigateGrc('/grc/practice')" class="btn-secondary mb-4 shadow-[2px_2px_0_0_#0b0b0b]">
+            <button onclick="window.navigateGrc('${backUrl}')" class="btn-secondary mb-4 shadow-[2px_2px_0_0_#0b0b0b]">
                 [←] Back to Arena
             </button>
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b-4 border-ink pb-4">
                 <div>
-                    <p class="font-mono text-xs font-bold uppercase tracking-widest text-ink mb-2 bg-cyan inline-block px-2 border-2 border-ink">SYS // AUDIT_MODE</p>
+                    <p class="font-mono text-xs font-bold uppercase tracking-widest text-ink mb-2 ${badgeBg} inline-block px-2 border-2 border-ink${isCompeteMode ? ' animate-pulse' : ''}">${badgeText}</p>
                     <h1 class="text-4xl sm:text-5xl font-extrabold text-ink uppercase tracking-tighter leading-none">
                         ${currentScenario.title}
                     </h1>
                 </div>
                 <div class="text-left sm:text-right w-full sm:w-auto">
-                    <p class="font-mono text-xs font-bold uppercase tracking-widest text-ink mb-1">> Global Findings</p>
-                    <div class="font-mono font-bold text-xl bg-warning border-2 border-ink px-4 py-1 shadow-[2px_2px_0_0_#0b0b0b] inline-block" id="global-progress">
-                        - / -
+                    <p class="font-mono text-xs font-bold uppercase tracking-widest text-ink mb-1">${progressLabel}</p>
+                    <div class="font-mono font-bold text-xl ${progressBg} border-2 border-ink px-4 py-1 shadow-[2px_2px_0_0_#0b0b0b] inline-block" id="global-progress">
+                        ${progressDefault}
                     </div>
                 </div>
             </div>
@@ -92,7 +101,7 @@ function renderLayout() {
                     <div id="viewer-actions" class="hidden flex flex-wrap gap-2 justify-end">
                         <button id="btn-download-raw" class="btn-secondary !text-xs !py-1 !px-2 hidden">Download File</button>
                         <button id="btn-export-pdf" class="btn-secondary !text-xs !py-1 !px-2 hidden">Export PDF</button>
-                        <button id="btn-submit-findings" class="btn-primary !text-xs !py-1 !px-2 hidden">Submit Findings</button>
+                        <button id="btn-submit-findings" class="${isCompeteMode ? 'btn-danger' : 'btn-primary'} !text-xs !py-1 !px-2 hidden">${isCompeteMode ? 'Submit to Server' : 'Submit Findings'}</button>
                     </div>
                 </div>
                 <div id="viewer-content" class="p-6 overflow-auto flex-grow relative">
@@ -141,6 +150,11 @@ function renderLayout() {
 window.updateProgress = function() {
     const progressEl = document.getElementById('global-progress');
     if (!progressEl) return;
+    
+    if (isCompeteMode) {
+        progressEl.innerText = '? / ?';
+        return;
+    }
     
     let totalRequired = 0;
     let totalFound = 0;
@@ -315,11 +329,13 @@ function renderMarkdown(mdText, container, fileDef, pdfBtn, submitBtn) {
         // Interactive block render
         const rawHtml = marked.parse(mdText);
         
+        const bannerBg = isCompeteMode ? 'bg-danger' : 'bg-warning';
+        const bannerText = isCompeteMode ? '> LIVE COMPETITION — INTERACTIVE AUDIT' : '> INTERACTIVE AUDIT MODE ENABLED';
         let bannerHtml = `
-            <div class="mb-8 p-4 border-2 border-ink bg-warning shadow-[4px_4px_0_0_#0b0b0b]">
+            <div class="mb-8 p-4 border-2 border-ink ${bannerBg} shadow-[4px_4px_0_0_#0b0b0b]">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
-                        <p class="font-mono text-sm font-bold uppercase tracking-widest">> INTERACTIVE AUDIT MODE ENABLED</p>
+                        <p class="font-mono text-sm font-bold uppercase tracking-widest">${bannerText}</p>
                         <p class="font-sans text-ink font-semibold mt-1">Please review the document below carefully. To log a policy violation or finding, simply click directly on the specific sentence, list item, or table row to highlight it. You must highlight all relevant findings before submitting.</p>
                     </div>
                     <button id="btn-clear-markings" class="btn-secondary !text-xs !py-1 !px-2 whitespace-nowrap bg-white text-ink hover:bg-danger hover:text-white hover:border-danger transition-colors">Clear All Markings</button>
@@ -392,7 +408,7 @@ function renderMarkdown(mdText, container, fileDef, pdfBtn, submitBtn) {
         
         // Show Submit Button
         submitBtn.classList.remove('hidden');
-        submitBtn.onclick = () => evaluateSubmission();
+        submitBtn.onclick = isCompeteMode ? () => competeSubmit() : () => evaluateSubmission();
         window.updateProgress();
     }
     
@@ -538,6 +554,107 @@ function evaluateSubmission() {
             </div>
         `;
     }
+}
+
+async function competeSubmit() {
+    const { submitCompeteFindings } = await import('../api.js');
+    
+    window.grcHighlights = JSON.parse(localStorage.getItem('grcHighlights') || '{}');
+    
+    // Filter highlights to only include this scenario's keys
+    const scenarioHighlights = {};
+    for (const key in window.grcHighlights) {
+        if (key.startsWith(currentScenario.id + '_')) {
+            scenarioHighlights[key] = window.grcHighlights[key];
+        }
+    }
+    
+    // Check if any highlights exist
+    const totalHighlights = Object.values(scenarioHighlights).reduce((sum, arr) => sum + arr.length, 0);
+    if (totalHighlights === 0) {
+        showToast('error', 'No findings selected. Highlight evidence before submitting.');
+        return;
+    }
+    
+    // Show email modal
+    const modal = document.getElementById('modal-container');
+    const modalContent = document.getElementById('modal-content');
+    modalContent.innerHTML = `
+        <h2 class="text-2xl font-extrabold uppercase tracking-tighter mb-4 border-b-4 border-ink pb-2">> Submit Findings</h2>
+        <p class="font-sans text-sm mb-4">Enter your email address to submit your findings for server verification. If your audit is correct and you are the first to submit, you win the competition.</p>
+        <input type="email" id="compete-email" placeholder="your@email.com" class="w-full border-2 border-ink p-3 font-mono text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-cyan" required />
+        <div class="flex gap-3">
+            <button id="compete-confirm-btn" class="btn-primary flex-1">Transmit</button>
+            <button id="compete-cancel-btn" class="btn-secondary flex-1">Abort</button>
+        </div>
+        <p id="compete-status" class="font-mono text-xs mt-4 hidden"></p>
+    `;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => {
+        modalContent.classList.remove('scale-95', 'opacity-0');
+        modalContent.classList.add('scale-100', 'opacity-100');
+    }, 10);
+    
+    document.getElementById('compete-cancel-btn').onclick = () => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        modalContent.classList.add('scale-95', 'opacity-0');
+        modalContent.classList.remove('scale-100', 'opacity-100');
+    };
+    
+    document.getElementById('compete-confirm-btn').onclick = async () => {
+        const email = document.getElementById('compete-email').value.trim();
+        if (!email || !email.includes('@')) {
+            showToast('error', 'Invalid email address.');
+            return;
+        }
+        
+        const statusEl = document.getElementById('compete-status');
+        statusEl.classList.remove('hidden');
+        statusEl.innerText = 'TRANSMITTING...';
+        statusEl.className = 'font-mono text-xs mt-4 animate-pulse';
+        
+        try {
+            const result = await submitCompeteFindings(currentScenario.id, scenarioHighlights, email);
+            
+            // Close modal
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            modalContent.classList.add('scale-95', 'opacity-0');
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            
+            if (result.success) {
+                showToast('success', result.message || 'ACCESS GRANTED — You are the winner!');
+                // Show victory screen
+                const mainContainer = document.getElementById('view-scenario');
+                mainContainer.innerHTML = `
+                    <div class="text-center py-10 sm:py-20 max-w-2xl mx-auto">
+                        <p class="font-mono text-xs font-bold uppercase tracking-widest text-ink mb-4 bg-success inline-block px-3 py-1 border-2 border-ink shadow-[2px_2px_0_0_#0b0b0b]">SYS // WINNER DECLARED</p>
+                        <h1 class="text-4xl sm:text-6xl font-extrabold text-ink uppercase tracking-tighter mb-8 leading-none">You Won</h1>
+                        <div class="bg-white border-4 border-ink p-6 sm:p-10 shadow-[8px_8px_0_0_#0b0b0b] mb-10 text-left">
+                            <h2 class="text-2xl font-extrabold uppercase tracking-tighter mb-6 text-ink border-b-4 border-ink pb-2">> Victory Report</h2>
+                            <ul class="font-mono text-sm space-y-4 mb-8">
+                                <li class="flex justify-between border-b border-ink border-dashed pb-2"><span>Challenge:</span> <span class="font-bold text-right">${currentScenario.title}</span></li>
+                                <li class="flex justify-between border-b border-ink border-dashed pb-2"><span>Winner:</span> <span class="font-bold">${email}</span></li>
+                                <li class="flex justify-between border-b border-ink border-dashed pb-2"><span>Status:</span> <span class="text-success font-bold">CHAMPION</span></li>
+                            </ul>
+                            <p class="font-sans text-ink leading-relaxed font-semibold">Congratulations! You are the first to correctly identify all policy violations. The admin has been notified.</p>
+                        </div>
+                        <button onclick="window.navigateGrc('/grc/compete')" class="font-mono uppercase tracking-widest font-bold bg-cyan text-ink border-2 border-ink px-8 py-4 shadow-[4px_4px_0_0_#0b0b0b] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_0_#0b0b0b] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all duration-75 w-full sm:w-auto">
+                            > Return to Compete
+                        </button>
+                    </div>
+                `;
+            } else {
+                showToast('error', result.message || 'ACCESS DENIED');
+            }
+        } catch (e) {
+            statusEl.innerText = 'CONNECTION FAILED';
+            statusEl.className = 'font-mono text-xs mt-4 text-danger font-bold';
+            showToast('error', 'Network error. Could not reach the verification server.');
+        }
+    };
 }
 
 // Simple toast helper since we don't have global toast access directly imported

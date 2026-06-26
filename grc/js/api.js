@@ -38,3 +38,22 @@ export async function fetchFileContent(path) {
         return "Error loading file content.";
     }
 }
+
+export async function submitCompeteFindings(scenarioId, highlights, email) {
+    const res = await fetch('https://api.haxnation.org/ctf/api/grc/compete/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scenarioId, highlights, email })
+    });
+    return await res.json();
+}
+
+export async function checkCompeteStatus(scenarioId) {
+    try {
+        const res = await fetch(`https://api.haxnation.org/ctf/api/grc/compete/status?scenarioId=${scenarioId}`);
+        if (res.ok) return await res.json();
+    } catch (e) {
+        console.error('Failed to check compete status', e);
+    }
+    return { open: true }; // Default to open if can't reach server
+}

@@ -1,0 +1,17 @@
+Timestamp,Username,Contractor_ID,Source_IP,Geo_Location,Duration_Min,System_Accessed
+2026-06-02 09:12:44,s.chen,C-101,198.51.100.42,"US - Virginia",85,ENG-DEV-01
+2026-06-03 14:22:10,m.rivera,C-102,198.51.100.55,"US - New York",30,FIN-ERP-01
+2026-06-05 08:30:00,j.okafor,C-103,198.51.100.67,"US - California",92,ENG-DEV-02
+2026-06-07 11:45:33,d.kim,C-106,198.51.100.91,"US - Virginia",145,FIN-ERP-01
+2026-06-10 07:00:55,p.sharma,C-105,198.51.100.23,"US - Texas",60,MKT-CMS-01
+2026-06-12 16:20:18,l.torres,C-108,198.51.100.33,"US - Virginia",200,IT-MONITOR-01
+2026-06-15 10:30:00,a.petrov,C-107,198.51.100.44,"US - Washington",75,ENG-DEV-01
+2026-06-18 08:45:12,s.chen,C-101,198.51.100.42,"US - Virginia",120,ENG-DEV-01
+2026-06-20 13:15:44,a.petrov,C-107,198.51.100.44,"US - Washington",40,ENG-DEV-01
+2026-06-21 16:00:08,y.nakamura,C-104,103.42.180.12,"Singapore",180,SEC-SIEM-01
+2026-06-22 08:15:33,s.chen,C-101,198.51.100.42,"US - Virginia",110,ENG-DEV-01
+2026-06-22 09:30:45,m.rivera,C-102,203.0.113.88,"US - New York",45,FIN-ERP-01
+2026-06-22 10:45:12,j.okafor,C-103,198.51.100.67,"US - California",88,ENG-DEV-02
+2026-06-22 11:30:20,d.kim,C-106,198.51.100.91,"US - Virginia",150,FIN-ERP-01
+2026-06-22 07:00:55,p.sharma,C-105,198.51.100.23,"US - Texas",55,MKT-CMS-01
+2026-06-22 08:00:33,l.torres,C-108,198.51.100.33,"US - Virginia",195,IT-MONITOR-01

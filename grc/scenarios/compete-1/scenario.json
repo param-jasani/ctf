@@ -1,0 +1,71 @@
+{
+  "id": "compete-1",
+  "title": "Operation Phantom Payroll",
+  "description": "A whistleblower has reported irregularities in HaxNation's contractor access management program. As the lead GRC auditor, investigate by cross-referencing the Contractor Access Policy, HR records, VPN logs, and financial invoices across multiple departments. Identify all policy violations and flag them in the interactive audit worksheets. Warning: Not everything that looks suspicious is a violation — read the full policy carefully, including the Amendment Log and Appendices.",
+  "compete": true,
+  "departments": [
+    {
+      "id": "grc",
+      "name": "GRC Desk",
+      "files": [
+        {
+          "id": "contractor_policy",
+          "name": "Contractor_Access_Policy_v2.1.md",
+          "type": "markdown",
+          "path": "/grc/scenarios/compete-1/contractor_access_policy.md",
+          "interactive": true
+        }
+      ]
+    },
+    {
+      "id": "hr",
+      "name": "HR Desk",
+      "files": [
+        {
+          "id": "contractor_roster",
+          "name": "contractor_roster_q2.csv",
+          "type": "csv",
+          "path": "/grc/scenarios/compete-1/contractor_roster.csv"
+        }
+      ]
+    },
+    {
+      "id": "it",
+      "name": "IT Security",
+      "files": [
+        {
+          "id": "vpn_log",
+          "name": "vpn_access_log_june.csv",
+          "type": "csv",
+          "path": "/grc/scenarios/compete-1/vpn_access_log.csv"
+        },
+        {
+          "id": "access_audit",
+          "name": "Interactive_Access_Audit.md",
+          "type": "markdown",
+          "path": "/grc/scenarios/compete-1/access_audit.md",
+          "interactive": true
+        }
+      ]
+    },
+    {
+      "id": "finance",
+      "name": "Finance Desk",
+      "files": [
+        {
+          "id": "invoices",
+          "name": "contractor_invoices_q2.csv",
+          "type": "csv",
+          "path": "/grc/scenarios/compete-1/contractor_invoices.csv"
+        },
+        {
+          "id": "billing_audit",
+          "name": "Interactive_Billing_Audit.md",
+          "type": "markdown",
+          "path": "/grc/scenarios/compete-1/billing_audit.md",
+          "interactive": true
+        }
+      ]
+    }
+  ]
+}
