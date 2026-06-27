@@ -399,6 +399,11 @@ function renderMarkdown(mdText, container, fileDef, pdfBtn, submitBtn) {
                 const isHighlighted = el.classList.toggle('highlighted');
                 el.setAttribute('aria-pressed', isHighlighted ? 'true' : 'false');
                 
+                // Re-read from localStorage on every click so we always have the latest
+                // state, even if updateProgress() replaced window.grcHighlights since setup.
+                window.grcHighlights = JSON.parse(localStorage.getItem('grcHighlights') || '{}');
+                if (!window.grcHighlights[fileKey]) window.grcHighlights[fileKey] = [];
+                
                 // Save state
                 if (isHighlighted) {
                     if (!window.grcHighlights[fileKey].includes(rawText)) {
